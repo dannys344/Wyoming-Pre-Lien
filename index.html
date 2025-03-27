@@ -263,7 +263,7 @@
             </div>
 
             <div class="buttons">
-                <button onclick="generatePreview()">Preview Documents</button>
+                <button type="button" onclick="generatePreview()">Preview Documents</button>
             </div>
         </div>
 
@@ -313,7 +313,17 @@
                 tablinks[i].className = tablinks[i].className.replace(" active", "");
             }
             document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
+            
+            // Handle case when evt might be undefined or not have currentTarget
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.className += " active";
+            } else if (tabName === 'PreviewTab') {
+                // If viewing preview tab, activate the second tab button
+                document.querySelectorAll('.tablinks')[1].className += " active";
+            } else {
+                // Default to first tab active
+                document.querySelectorAll('.tablinks')[0].className += " active";
+            }
         }
         
         function openDocTab(evt, docId) {
@@ -328,13 +338,21 @@
             }
             
             document.getElementById(docId).style.display = "block";
-            evt.currentTarget.className += " active";
+            
+            // Handle case when evt might be undefined
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.className += " active";
+            } else if (docId === 'previewNoticeDocument') {
+                // If viewing notice document, activate the second doc tab button
+                document.querySelectorAll('.doc-tab-btn')[1].className += " active";
+            } else {
+                // Default to first doc tab active
+                document.querySelectorAll('.doc-tab-btn')[0].className += " active";
+            }
         }
 
         function goBackToForm() {
-            openTab(event, 'FormTab');
-            document.querySelector('.tablinks').classList.add('active');
-            document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
+            openTab(null, 'FormTab');
         }
 
         function formatDate(dateString) {
