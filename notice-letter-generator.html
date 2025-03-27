@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyoming Notice Letter Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 80px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .preview-container {
+            margin-top: 30px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            background-color: white;
+        }
+        .hidden {
+            display: none;
+        }
+        #previewLetter {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            margin-bottom: 20px;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            color: black;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wyoming Notice Letter Generator</h1>
+
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'NoticeLetterInfo')">Notice Letter Info</button>
+            <button class="tablinks" onclick="openTab(event, 'NoticeLetterPreview')">Notice Letter Preview</button>
+        </div>
+
+        <!-- NOTICE LETTER FORM -->
+        <div id="NoticeLetterInfo" class="tabcontent" style="display: block;">
+            <!-- 1. Current Date (auto-populated) -->
+            <div class="form-group">
+                <label for="letterDate">Current Date:</label>
+                <input type="text" id="letterDate" readonly>
+            </div>
+
+            <!-- 2. Certified Mail Number -->
+            <div class="form-group">
+                <label for="certifiedMailNumber">Certified Mail Number:</label>
+                <input type="text" id="certifiedMailNumber" placeholder="Enter certified mail number">
+            </div>
+
+            <!-- 3. Customer Name -->
+            <div class="form-group">
+                <label for="customerName">Customer Name:</label>
+                <input type="text" id="customerName" placeholder="Enter customer name">
+            </div>
+
+            <!-- 4. Property Address -->
+            <div class="form-group">
+                <label for="propertyAddress">Property Address:</label>
+                <input type="text" id="propertyAddress" placeholder="Enter property address">
+            </div>
+
+            <div class="buttons">
+                <button onclick="generateNoticeLetterPreview()">Preview Notice Letter</button>
+            </div>
+        </div>
+
+        <!-- NOTICE LETTER PREVIEW -->
+        <div id="NoticeLetterPreview" class="tabcontent">
+            <div id="previewLetter"></div>
+            <div class="buttons">
+                <button onclick="goBackToForm()">Edit Form</button>
+                <button onclick="generatePDF()">Download PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set current date for notice letter
+        window.onload = function() {
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('letterDate').value = today.toLocaleDateString('en-US', options);
+        };
+
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        function goBackToForm() {
+            openTab(event, 'NoticeLetterInfo');
+            document.querySelector('.tablinks').classList.add('active');
+            document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
+        }
+
+        function generateNoticeLetterPreview() {
+            const letterDate = document.getElementById('letterDate').value || '[Date Not Provided]';
+            const certifiedMailNumber = document.getElementById('certifiedMailNumber').value || '[Certified Mail Number Not Provided]';
+            const customerName = document.getElementById('customerName').value || '[Customer Name Not Provided]';
+            const propertyAddress = document.getElementById('propertyAddress').value || '[Property Address Not Provided]';
+
+            const letterContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; line-height: 1.5;">${letterDate}
+
+VIA CERTIFIED MAIL
+
+# ${certifiedMailNumber}
+
+Name: ${customerName}
+
+Address: ${propertyAddress}
+
+To Whom It May Concern:
+
+Thank you for choosing View Point. We appreciate your business and look forward to working with you!
+
+Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is **not** a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
+
+If there are questions or concerns, please contact Michele Clark: (208) 854-1877
+
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAAA8CAYAAACMhGHSAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAWXSURBVHgB7ZvNbxtVFMXPm3HtJHYbElJFJaSKDUggFSGxYtV/qF3Un8qCPRISpSpdsGCBBKhqG5LEjj2+s3gzY6d1GiUZv/HHOdKRJx9+8bNn7r3n3vsUEARBEARBEARBEARBEARBEIQJyHCPWFsre/b16o9Hrq2tlXvwxqfG4OTYvs4qZC9BHxhfCqhbQmcDWJlBef95/DBdDaKcm8Zgf41GdY7s7j7eqQ8kWP8hAVrYO+
