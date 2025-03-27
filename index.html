@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pre-Lien Document Generator</title>
+    <title>Document Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -65,7 +65,7 @@
         .hidden {
             display: none;
         }
-        #previewDocument {
+        #previewDocument, #previewNoticeDocument {
             font-family: 'Times New Roman', Times, serif;
             font-size: 12pt;
             line-height: 1.5;
@@ -107,6 +107,27 @@
         .select2-container {
             width: 100% !important;
         }
+        .doc-tabs {
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        .doc-tabs button {
+            background-color: #f1f1f1;
+            float: left;
+            border: 1px solid #ccc;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 15px;
+            transition: 0.3s;
+            margin-right: 5px;
+            color: black;
+        }
+        .doc-tabs button:hover {
+            background-color: #ddd;
+        }
+        .doc-tabs button.active {
+            background-color: #ccc;
+        }
     </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -114,7 +135,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Pre-Lien Document Generator</h1>
+        <h1>Document Generator</h1>
 
         <div class="tab">
             <button class="tablinks active" onclick="openTab(event, 'FormTab')">Form</button>
@@ -194,6 +215,18 @@
                 <label for="totalContractCost">Total Contract Cost ($):</label>
                 <input type="number" id="totalContractCost" placeholder="Enter total contract cost" step="0.01">
             </div>
+            
+            <!-- 9. Customer Name -->
+            <div class="form-group">
+                <label for="customerName">Customer Name:</label>
+                <input type="text" id="customerName" placeholder="Enter customer name">
+            </div>
+            
+            <!-- 10. Certified Mail Number -->
+            <div class="form-group">
+                <label for="certifiedMailNumber">Certified Mail Number:</label>
+                <input type="text" id="certifiedMailNumber" placeholder="Enter certified mail number">
+            </div>
 
             <!-- Hidden date fields -->
             <div class="form-group hidden">
@@ -230,15 +263,23 @@
             </div>
 
             <div class="buttons">
-                <button onclick="generatePreview()">Preview Document</button>
+                <button onclick="generatePreview()">Preview Documents</button>
             </div>
         </div>
 
         <div id="PreviewTab" class="tabcontent">
-            <div id="previewDocument"></div>
+            <div class="doc-tabs">
+                <button class="doc-tab-btn active" onclick="openDocTab(event, 'previewDocument')">Notice of Right to Lien</button>
+                <button class="doc-tab-btn" onclick="openDocTab(event, 'previewNoticeDocument')">Notice Letter</button>
+            </div>
+            
+            <div id="previewDocument" class="doc-content" style="display: block;"></div>
+            <div id="previewNoticeDocument" class="doc-content" style="display: none;"></div>
+            
             <div class="buttons">
                 <button onclick="goBackToForm()">Edit Form</button>
-                <button onclick="generatePDF()">Download PDF</button>
+                <button onclick="generatePDF('previewDocument', true)">Download Notice of Right to Lien</button>
+                <button onclick="generatePDF('previewNoticeDocument', false)">Download Notice Letter</button>
             </div>
         </div>
     </div>
@@ -274,6 +315,21 @@
             document.getElementById(tabName).style.display = "block";
             evt.currentTarget.className += " active";
         }
+        
+        function openDocTab(evt, docId) {
+            var docContents = document.getElementsByClassName("doc-content");
+            for (var i = 0; i < docContents.length; i++) {
+                docContents[i].style.display = "none";
+            }
+            
+            var docTabBtns = document.getElementsByClassName("doc-tab-btn");
+            for (var i = 0; i < docTabBtns.length; i++) {
+                docTabBtns[i].className = docTabBtns[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(docId).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
 
         function goBackToForm() {
             openTab(event, 'FormTab');
@@ -300,6 +356,8 @@
             const contractorInfo = document.getElementById('contractorInfo').value || '[Contractor Information Not Provided]';
             const contractorAddress = document.getElementById('contractorAddress').value || '[Contractor Address Not Provided]';
             const totalContractCost = document.getElementById('totalContractCost').value || '[Amount Not Provided]';
+            const customerName = document.getElementById('customerName').value || '[Customer Name Not Provided]';
+            const certifiedMailNumber = document.getElementById('certifiedMailNumber').value || '[Mail Number Not Provided]';
             
             // Date values
             const currentDate = formatDate(document.getElementById('currentDate').value);
@@ -310,7 +368,8 @@
             // Combine contractor info and address for the TO: field
             const fullContractorInfo = `${contractorInfo}\n${contractorAddress}`;
 
-            const documentContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">** NOTICE TO OWNER**</div>
+            // Generate the right to lien document
+            const rightToLienContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">** NOTICE TO OWNER**</div>
  
 The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property *can result* in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
  
@@ -332,129 +391,4 @@ BUILDING MATERIALS AND LABOR
 **PARCEL IDENTIFICATION:** ${parcelId}
 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAAA8CAYAAACMhGHSAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAWXSURBVHgB7ZvNbxtVFMXPm3HtJHYbElJFJaSKDUggFSGxYtV/qF3Un8qCPRISpSpdsGCBBKhqG5LEjj2+s3gzY6d1GiUZv/HHOdKRJx9+8bNn7r3n3vsUEARBEARBEARBEARBEARBEIQJyHCPWFsre/b16o9Hrq2tlXvwxqfG4OTYvs4qZC9BHxhfCqhbQmcDWJlBef95/DBdDaKcm8Zgf41GdY7s7j7eqQ8kWP8hAVrYO+QPKyhRoUDUQlU1aDSekYoA3gFlS8Ls/NNNBOg3kBw/wW5XUN67RJXnCO0qXg0PcPhoFVXn0XDU6XwQJFhvgLVU8fgvBSxrkLVN4cXoFPsdisyzC9RjJ6iLBVRFEyX6GM7oBDH3IM9Og54fGnKnKOLfGCd1VOkiPdXDsFvH7s5TtJ88TN9lnuMF6X3uLdX9Qa9TLTtfq05xQ+OXlh1lzTcfA7Msn+vwIw3KAnnpnwfXaafRQmU6yPwWAu8UVbQ/TFzswPde86V4ZN4aQqHAT7XmyP3wfdSpZUHT0fXQYLBTYZU45L/NuXeGHBf2aIEQN+kbB6GZO0HZ7GJoXs/Sn7B9XFWuq8/lYy6NNXvCTR+bpWUxvPOIlalO389+OBxj+8kBHj6q4vHjOZRUZJPTPhVjd5qPVqhqFlC2dHtKCmWM8/XUuRK09XXDC1oVfb+KPFGg/oBUxXPK3BUiWpzs+xQ1d4CRe2nvmcYzfZlMiV1XVdNPNurhGQbBAfrxfH0JlzL/+bwbRTdVPDMq3F29kS7QwI7RaC2SKpxiZ+dJ+tzHh59icNhCb7+Jk+Mn6TWfr9Pjy+4dTF3VfZ7fWvcPqtg+aKe/E/trtC8Pv2YysFe6MKQy+RKM13QLXdG5fY+UJ0SJnuGvlefDezGeMV/gdbFdUgJXppOSZYZFdm9JK3WDOw5H+N2gzmz8s+hHVQpChaJt8XyxdoSP+j72Dw4wiun4PUfXr1z10JU9LXw3C/vZ2j5OYQ3LL8/U9E85JXgbLt+vqH2Y2ZrVOGb9uMYxQn2gI3qZdxh4JTHPYzrxHIZdPNvfxvKD35BlMRWw/qEpnWzx/G666d5QhHHSMh9Mc2m2xmeXVdvQ0WTqFjMqaR29Rl6wjUmfT68vLI29Z3VaUvPoHcOzgM6kOoIoUQUcjIGW3zXqPaLvRCbT8Xz9K9x5EaFZXaGc0MGzlV3hQNVdTw9hGNH7uIEwIcwkczIytj5EZ3u5Frs6H7wIBL83GqX1q7sGzNyHOLVnZ1B0YTyFwsK4RlGdGaO3i+r4OTWX3YzGaZ7tqffqIzbbUwGl+UoNLKUsjO12msjE/eHrz5H3uwiC8zQIFCeXgkGd5+2hqZ5Tg+VcDy5lfbz0HE0r86Q+XMUyC2KUp2HT6/HTlrqtcRCozFPz1aAQsZitJYsJLisBbdWb2OmSOtYCgwZGMW31yWpwnXtLpfZQCwFLW9xqyLnfGnN1gvL2L5hfXKAOTXZNYDtWVMN22TwtwS+YHwLKOe+Z0aK2oOQoL1dGT/Fg5SWCYJsWdJfUq5qDQZTWyqX1uFAFZV3bM0vf5HcXTbWoIqqsj57jS53YrCxRQe5T4Z8hClv01D20O8eIbJeyc4Sk3KCO3LCCLnm3Xna1KmLT1qA+K0t1lOSLX9PoHrJcvZmqPm9RDTrLR6QshwjCYxgTIAx2EdodjZkiuiMnf11Z6Gj3VofDL2FMmD7wvX66I+r/6AkzJsUFArcDc+c0hl5ZMJHVdTMkZnGNQuHMKIp58OomBjGF0Vs/r2q57tEd0Dxq/jWe3aIjUiehk4B79DvN5f90siAIgiAIgiAIgiAIgiAIgiDMPP8ARM1JRk5lousAAAAASUVORK5CYII=" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: -15px;">
 **SIGNED**:        
-                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAAA8CAYAAACMhGHSAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAWXSURBVHgB7ZvNbxtVFMXPm3HtJHYbElJFJaSKDUggFSGxYtV/qF3Un8qCPRISpSpdsGCBBKhqG5LEjj2+s3gzY6d1GiUZv/HHOdKRJx9+8bNn7r3n3vsUEARBEARBEARBEARBEARBEIQJyHCPWFsre/b16o9Hrq2tlXvwxqfG4OTYvs4qZC9BHxhfCqhbQmcDWJlBef95/DBdDaKcm8Zgf41GdY7s7j7eqQ8kWP8hAVrYO+QPKyhRoUDUQlU1aDSekYoA3gFlS8Ls/NNNBOg3kBw/wW5XUN67RJXnCO0qXg0PcPhoFVXn0XDU6XwQJFhvgLVU8fgvBSxrkLVN4cXoFPsdisyzC9RjJ6iLBVRFEyX6GM7oBDH3IM9Og54fGnKnKOLfGCd1VOkiPdXDsFvH7s5TtJ88TN9lnuMF6X3uLdX9Qa9TLTtfq05xQ+OXlh1lzTcfA7Msn+vwIw3KAnnpnwfXaafRQmU6yPwWAu8UVbQ/TFzswPde86V4ZN4aQqHAT7XmyP3wfdSpZUHT0fXQYLBTYZU45L/NuXeGHBf2aIEQN+kbB6GZO0HZ7GJoXs/Sn7B9XFWuq8/lYy6NNXvCTR+bpWUxvPOIlalO389+OBxj+8kBHj6q4vHjOZRUZJPTPhVjd5qPVqhqFlC2dHtKCmWM8/XUuRK09XXDC1oVfb+KPFGg/oBUxXPK3BUiWpzs+xQ1d4CRe2nvmcYzfZlMiV1XVdNPNurhGQbBAfrxfH0JlzL/+bwbRTdVPDMq3F29kS7QwI7RaC2SKpxiZ+dJ+tzHh59icNhCb7+Jk+Mn6TWfr9Pjy+4dTF3VfZ7fWvcPqtg+aKe/E/trtC8Pv2YysFe6MKQy+RKM13QLXdG5fY+UJ0SJnuGvlefDezGeMV/gdbFdUgJXppOSZYZFdm9JK3WDOw5H+N2gzmz8s+hHVQpChaJt8XyxdoSP+j72Dw4wiun4PUfXr1z10JU9LXw3C/vZ2j5OYQ3LL8/U9E85JXgbLt+vqH2Y2ZrVOGb9uMYxQn2gI3qZdxh4JTHPYzrxHIZdPNvfxvKD35BlMRWw/qEpnWzx/G666d5QhHHSMh9Mc2m2xmeXVdvQ0WTqFjMqaR29Rl6wjUmfT68vLI29Z3VaUvPoHcOzgM6kOoIoUQUcjIGW3zXqPaLvRCbT8Xz9K9x5EaFZXaGc0MGzlV3hQNVdTw9hGNH7uIEwIcwkczIytj5EZ3u5Frs6H7wIBL83GqX1q7sGzNyHOLVnZ1B0YTyFwsK4RlGdGaO3i+r4OTWX3YzGaZ7tqffqIzbbUwGl+UoNLKUsjO12msjE/eHrz5H3uwiC8zQIFCeXgkGd5+2hqZ5Tg+VcDy5lfbz0HE0r86Q+XMUyC2KUp2HT6/HTlrqtcRCozFPz1aAQsZitJYsJLisBbdWb2OmSOtYCgwZGMW31yWpwnXtLpfZQCwFLW9xqyLnfGnN1gvL2L5hfXKAOTXZNYDtWVMN22TwtwS+YHwLKOe+Z0aK2oOQoL1dGT/Fg5SWCYJsWdJfUq5qDQZTWyqX1uFAFZV3bM0vf5HcXTbWoIqqsj57jS53YrCxRQe5T4Z8hClv01D20O8eIbJeyc4Sk3KCO3LCCLnm3Xna1KmLT1qA+K0t1lOSLX9PoHrJcvZmqPm9RDTrLR6QshwjCYxgTIAx2EdodjZkiuiMnf11Z6Gj3VofDL2FMmD7wvX66I+r/6AkzJsUFArcDc+c0hl5ZMJHVdTMkZnGNQuHMKIp58OomBjGF0Vs/r2q57tEd0Dxq/jWe3aIjUiehk4B79DvN5f90siAIgiAIgiAIgiAIgiAIgiDMPP8ARM1JRk5lousAAAAASUVORK5CYII=" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: -15px;">
-                        Jay L. Singleton, COO
- 
-** **
-** **
-** **
-**${currentDate}**
- 
-<div style="text-align: center; font-weight: bold; margin-bottom: 10px;">**LIEN WAIVER**</div>
- 
-TO: ${fullContractorInfo}
- 
-PROJECT: ${projectName}
-FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">VIEW POINT, INC.</span>
- 
-DATE: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${currentDate}</span>
- 
-PAYMENT: $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${totalContractCost}</span>
- 
-In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
- 
-By:
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAAA8CAYAAACMhGHSAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAWXSURBVHgB7ZvNbxtVFMXPm3HtJHYbElJFJaSKDUggFSGxYtV/qF3Un8qCPRISpSpdsGCBBKhqG5LEjj2+s3gzY6d1GiUZv/HHOdKRJx9+8bNn7r3n3vsUEARBEARBEARBEARBEARBEIQJyHCPWFsre/b16o9Hrq2tlXvwxqfG4OTYvs4qZC9BHxhfCqhbQmcDWJlBef95/DBdDaKcm8Zgf41GdY7s7j7eqQ8kWP8hAVrYO+QPKyhRoUDUQlU1aDSekYoA3gFlS8Ls/NNNBOg3kBw/wW5XUN67RJXnCO0qXg0PcPhoFVXn0XDU6XwQJFhvgLVU8fgvBSxrkLVN4cXoFPsdisyzC9RjJ6iLBVRFEyX6GM7oBDH3IM9Og54fGnKnKOLfGCd1VOkiPdXDsFvH7s5TtJ88TN9lnuMF6X3uLdX9Qa9TLTtfq05xQ+OXlh1lzTcfA7Msn+vwIw3KAnnpnwfXaafRQmU6yPwWAu8UVbQ/TFzswPde86V4ZN4aQqHAT7XmyP3wfdSpZUHT0fXQYLBTYZU45L/NuXeGHBf2aIEQN+kbB6GZO0HZ7GJoXs/Sn7B9XFWuq8/lYy6NNXvCTR+bpWUxvPOIlalO389+OBxj+8kBHj6q4vHjOZRUZJPTPhVjd5qPVqhqFlC2dHtKCmWM8/XUuRK09XXDC1oVfb+KPFGg/oBUxXPK3BUiWpzs+xQ1d4CRe2nvmcYzfZlMiV1XVdNPNurhGQbBAfrxfH0JlzL/+bwbRTdVPDMq3F29kS7QwI7RaC2SKpxiZ+dJ+tzHh59icNhCb7+Jk+Mn6TWfr9Pjy+4dTF3VfZ7fWvcPqtg+aKe/E/trtC8Pv2YysFe6MKQy+RKM13QLXdG5fY+UJ0SJnuGvlefDezGeMV/gdbFdUgJXppOSZYZFdm9JK3WDOw5H+N2gzmz8s+hHVQpChaJt8XyxdoSP+j72Dw4wiun4PUfXr1z10JU9LXw3C/vZ2j5OYQ3LL8/U9E85JXgbLt+vqH2Y2ZrVOGb9uMYxQn2gI3qZdxh4JTHPYzrxHIZdPNvfxvKD35BlMRWw/qEpnWzx/G666d5QhHHSMh9Mc2m2xmeXVdvQ0WTqFjMqaR29Rl6wjUmfT68vLI29Z3VaUvPoHcOzgM6kOoIoUQUcjIGW3zXqPaLvRCbT8Xz9K9x5EaFZXaGc0MGzlV3hQNVdTw9hGNH7uIEwIcwkczIytj5EZ3u5Frs6H7wIBL83GqX1q7sGzNyHOLVnZ1B0YTyFwsK4RlGdGaO3i+r4OTWX3YzGaZ7tqffqIzbbUwGl+UoNLKUsjO12msjE/eHrz5H3uwiC8zQIFCeXgkGd5+2hqZ5Tg+VcDy5lfbz0HE0r86Q+XMUyC2KUp2HT6/HTlrqtcRCozFPz1aAQsZitJYsJLisBbdWb2OmSOtYCgwZGMW31yWpwnXtLpfZQCwFLW9xqyLnfGnN1gvL2L5hfXKAOTXZNYDtWVMN22TwtwS+YHwLKOe+Z0aK2oOQoL1dGT/Fg5SWCYJsWdJfUq5qDQZTWyqX1uFAFZV3bM0vf5HcXTbWoIqqsj57jS53YrCxRQe5T4Z8hClv01D20O8eIbJeyc4Sk3KCO3LCCLnm3Xna1KmLT1qA+K0t1lOSLX9PoHrJcvZmqPm9RDTrLR6QshwjCYxgTIAx2EdodjZkiuiMnf11Z6Gj3VofDL2FMmD7wvX66I+r/6AkzJsUFArcDc+c0hl5ZMJHVdTMkZnGNQuHMKIp58OomBjGF0Vs/r2q57tEd0Dxq/jWe3aIjUiehk4B79DvN5f90siAIgiAIgiAIgiAIgiAIgiDMPP8ARM1JRk5lousAAAAASUVORK5CYII=" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: -15px;">
-        Jay L. Singleton, COO
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-STATE OF Wyoming
- 
- 
- 
- 
- 
- 
- 
- 
-)
-)
-ss.
-COUNTY OF ${county}
- 
-)
-This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${dayOfMonth}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${currentYear}</span>, by
- 
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px;"></span> as lien claimant or
- 
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px;"></span> of
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px;"></span>
- 
-(lien claimant).
- 
-IN WITNESS THEREOF, I have hereunto set my hand and affixed my official seal on the day and year last above written.
- 
-______________________________
-Notarial officer
-My Commission Expires:
-Seal:
-</div>`;
-
-            document.getElementById('previewDocument').innerHTML = documentContent;
-            openTab(event, 'PreviewTab');
-            document.querySelector('.tablinks').classList.remove('active');
-            document.querySelector('.tablinks:nth-child(2)').classList.add('active');
-        }
-
-        function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'letter'
-            });
-
-            const previewElement = document.getElementById('previewDocument');
-            
-            // Create a temporary div with proper styling for PDF generation
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = previewElement.innerHTML;
-            tempDiv.style.width = '180mm';
-            tempDiv.style.padding = '15mm';
-            tempDiv.style.fontFamily = 'Times New Roman';
-            tempDiv.style.fontSize = '12pt';
-            tempDiv.style.lineHeight = '1.5';
-            tempDiv.style.whiteSpace = 'pre-wrap';
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '-9999px';
-            document.body.appendChild(tempDiv);
-
-            html2canvas(tempDiv, {
-                scale: 2,
-                logging: false
-            }).then(canvas => {
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const imgWidth = 210; // A4 width in mm
-                const pageHeight = 297; // A4 height in mm
-                const imgHeight = canvas.height * imgWidth / canvas.width;
-                let heightLeft = imgHeight;
-                let position = 0;
-
-                doc.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-
-                while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
-                    doc.addPage();
-                    doc.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
-                }
-
-                doc.save('pre-lien-document.pdf');
-                document.body.removeChild(tempDiv);
-            });
-        }
-    </script>
-</body>
-</html>
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAAA8CAYAAACMhGHSAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAWXSURBVHgB7ZvNbxtVFMXPm3HtJHYbElJFJaSKDUggFSGxYtV/qF3Un8qCPRISpSpdsGCBBKhqG5LEjj2+s3gzY6d1GiUZv/HHOdKRJx9+8bNn7r3n3vsUEARBEARBEARBEARBEARBEIQJyHCPWFsre/b16o9Hrq2tlXvwxqfG4OTYvs4qZC9BHxhfCqhbQmcDWJlBef95/DBdDaKcm8Zgf41GdY7s7j7eqQ8kWP8hAVrYO+QPKyhRoUDUQlU1aDSekYoA3gFlS8Ls/NNNBOg3kBw/wW5XUN67RJXnCO0qXg0PcPhoFVXn0XDU6XwQJFhvgLVU8fgvBSxrkLVN4cXoFPsdisyzC9RjJ6iLBVRFEyX6GM7oBDH3IM9Og54fGnKnKOLfGCd1VOkiPdXDsFvH7s5TtJ88TN9lnuMF6X3uLdX9Qa9TLTtfq05xQ+OXlh1lzTcfA7Msn+vwIw3KAnnpnwfXaafRQmU6yPwWAu8UVbQ/TFzswPde86V4ZN4aQqHAT7XmyP3wfdSpZUHT0fXQYLBTYZU45L/NuXeGHBf2aIEQN+kbB6GZO0HZ7GJoXs/Sn7B9XFWuq8/lYy6NNXvCTR+bpWUxvPOIlalO389+OBxj+8kBHj6q4vHjOZRUZJPTPhVjd5qPVqhqFlC2dHtKCmWM8/XUuRK09XXDC1oVfb+KPFGg/oBUxXPK3BUiWpzs+xQ1d4CRe2nvmcYzfZlMiV1XVdNPNurhGQbBAfrxfH0JlzL/+bwbRTdVPDMq3F29kS7QwI7RaC2SKpxiZ+dJ+tzHh59icNhCb7+Jk+Mn6TWfr9Pjy+4dTF3VfZ7fWvcPqtg+aKe/E/trtC8Pv2YysFe6MKQy+RKM13QLXdG5fY+UJ0SJnuGvlefDezGeMV/gdbFdUgJXppOSZYZFdm9JK3WDOw5H+N2gzmz8s+hHVQpChaJt8XyxdoSP+j72Dw4wiun4PUfXr1z10JU9LXw3C/vZ2j5OYQ3LL8/U9E85JXgbLt+vqH2Y2ZrVOGb9uMYxQn2gI3qZdxh4JTHPYzrxHIZdPNvfxvKD35BlMRWw/qEpnWzx/G666d5QhHHSMh9Mc2m2xmeXVdvQ0WTqFjMqaR29Rl6wjUmfT68vLI29Z3VaUvPoHcOzgM6kOoIoUQUcjIGW3zXqPaLvRCbT8Xz9K9x5EaFZXaGc0MGzlV3hQNVdTw9hGNH7uIEwIcwkczIytj5EZ3u5Frs6H7wIBL83GqX1q7sGzNyHOLVnZ1B0YTyFwsK4RlGdGaO3i+r4OTWX3YzGaZ7tqffqIzbbUwGl+UoNLKUsjO12msjE/eHrz5H3uwiC8zQIFCeXgkGd5+2hqZ5Tg+VcDy5lfbz0HE0r86Q+XMUyC2KUp2HT6/HTlrqtcRCozFPz1aAQsZitJYsJLisBbdWb2OmSOtYCgwZGMW31yWpwnXtLpfZQCwFLW9xqyLnfGnN1gvL2L5hfXKAOTXZNYDtWVMN22TwtwS+YHwLKOe+Z0aK2oOQoL1dGT/Fg5SWCYJsWdJfUq5qDQZTWyqX1uFAFZV3bM0vf5HcXTbWoIqqsj57jS53YrCxRQe5T4Z8hClv01D20O8eIbJeyc4Sk3KCO3LCCLnm3Xna1KmLT1qA+K0t1lOSLX9PoHrJcvZmqPm9RDTrLR6QshwjCYxgTIAx2EdodjZkiuiMnf11Z
