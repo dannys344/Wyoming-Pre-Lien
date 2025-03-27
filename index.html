@@ -201,13 +201,13 @@
             <!-- 6. Contractor Contact Information -->
             <div class="form-group">
                 <label for="contractorInfo">Contractor Contact Information (Name, Mobile, Email):</label>
-                <textarea id="contractorInfo" placeholder="Example: Tyler Lohss Mobile: (406) 599-4204 tyler@lohssconstruction.com"></textarea>
+                <textarea id="contractorInfo" placeholder="Example: John Smith Mobile: (555) 123-4567 john.smith@exampleconstruction.com"></textarea>
             </div>
 
             <!-- 7. Contractor Address -->
             <div class="form-group">
                 <label for="contractorAddress">Contractor Address:</label>
-                <textarea id="contractorAddress" placeholder="Example: Lohss Construction PO Box 556 Gallatin Gateway MT 59730-0556"></textarea>
+                <textarea id="contractorAddress" placeholder="Example: Example Construction LLC PO Box 123 Anytown WY 82001"></textarea>
             </div>
 
             <!-- 8. Total Contract Cost -->
@@ -367,6 +367,39 @@
 
             // Combine contractor info and address for the TO: field
             const fullContractorInfo = `${contractorInfo}\n${contractorAddress}`;
+
+            // Generate Notice Letter document
+            const noticeLetterContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.5; padding: 1in 1in 1in 1in;">
+${currentDate}
+
+VIA CERTIFIED MAIL
+
+#${certifiedMailNumber}
+
+Name: ${customerName}
+
+Address: ${propertyAddress}
+
+To Whom It May Concern:
+
+Thank you for choosing View Point. We appreciate your business and look forward to working with you!
+
+Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is **not** a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
+
+If there are questions or concerns, please contact Michele Clark: (208) 854-1877
+
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAAA8CAYAAACMhGHSAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAWXSURBVHgB7ZvNbxtVFMXPm3HtJHYbElJFJaSKDUggFSGxYtV/qF3Un8qCPRISpSpdsGCBBKhqG5LEjj2+s3gzY6d1GiUZv/HHOdKRJx9+8bNn7r3n3vsUEARBEARBEARBEARBEARBEIQJyHCPWFsre/b16o9Hrq2tlXvwxqfG4OTYvs4qZC9BHxhfCqhbQmcDWJlBef95/DBdDaKcm8Zgf41GdY7s7j7eqQ8kWP8hAVrYO+QPKyhRoUDUQlU1aDSekYoA3gFlS8Ls/NNNBOg3kBw/wW5XUN67RJXnCO0qXg0PcPhoFVXn0XDU6XwQJFhvgLVU8fgvBSxrkLVN4cXoFPsdisyzC9RjJ6iLBVRFEyX6GM7oBDH3IM9Og54fGnKnKOLfGCd1VOkiPdXDsFvH7s5TtJ88TN9lnuMF6X3uLdX9Qa9TLTtfq05xQ+OXlh1lzTcfA7Msn+vwIw3KAnnpnwfXaafRQmU6yPwWAu8UVbQ/TFzswPde86V4ZN4aQqHAT7XmyP3wfdSpZUHT0fXQYLBTYZU45L/NuXeGHBf2aIEQN+kbB6GZO0HZ7GJoXs/Sn7B9XFWuq8/lYy6NNXvCTR+bpWUxvPOIlalO389+OBxj+8kBHj6q4vHjOZRUZJPTPhVjd5qPVqhqFlC2dHtKCmWM8/XUuRK09XXDC1oVfb+KPFGg/oBUxXPK3BUiWpzs+xQ1d4CRe2nvmcYzfZlMiV1XVdNPNurhGQbBAfrxfH0JlzL/+bwbRTdVPDMq3F29kS7QwI7RaC2SKpxiZ+dJ+tzHh59icNhCb7+Jk+Mn6TWfr9Pjy+4dTF3VfZ7fWvcPqtg+aKe/E/trtC8Pv2YysFe6MKQy+RKM13QLXdG5fY+UJ0SJnuGvlefDezGeMV/gdbFdUgJXppOSZYZFdm9JK3WDOw5H+N2gzmz8s+hHVQpChaJt8XyxdoSP+j72Dw4wiun4PUfXr1z10JU9LXw3C/vZ2j5OYQ3LL8/U9E85JXgbLt+vqH2Y2ZrVOGb9uMYxQn2gI3qZdxh4JTHPYzrxHIZdPNvfxvKD35BlMRWw/qEpnWzx/G666d5QhHHSMh9Mc2m2xmeXVdvQ0WTqFjMqaR29Rl6wjUmfT68vLI29Z3VaUvPoHcOzgM6kOoIoUQUcjIGW3zXqPaLvRCbT8Xz9K9x5EaFZXaGc0MGzlV3hQNVdTw9hGNH7uIEwIcwkczIytj5EZ3u5Frs6H7wIBL83GqX1q7sGzNyHOLVnZ1B0YTyFwsK4RlGdGaO3i+r4OTWX3YzGaZ7tqffqIzbbUwGl+UoNLKUsjO12msjE/eHrz5H3uwiC8zQIFCeXgkGd5+2hqZ5Tg+VcDy5lfbz0HE0r86Q+XMUyC2KUp2HT6/HTlrqtcRCozFPz1aAQsZitJYsJLisBbdWb2OmSOtYCgwZGMW31yWpwnXtLpfZQCwFLW9xqyLnfGnN1gvL2L5hfXKAOTXZNYDtWVMN22TwtwS+YHwLKOe+Z0aK2oOQoL1dGT/Fg5SWCYJsWdJfUq5qDQZTWyqX1uFAFZV3bM0vf5HcXTbWoIqqsj57jS53YrCxRQe5T4Z8hClv01D20O8eIbJeyc4Sk3KCO3LCCLnm3Xna1KmLT1qA+K0t1lOSLX9PoHrJcvZmqPm9RDTrLR6QshwjCYxgTIAx2EdodjZkiuiMnf11Z6Gj3VofDL2FMmD7wvX66I+r/6AkzJsUFArcDc+c0hl5ZMJHVdTMkZnGNQuHMKIp58OomBjGF0Vs/r2q57tEd0Dxq/jWe3aIjUiehk4B79DvN5f90siAIgiAIgiAIgiAIgiAIgiDMPP8ARM1JRk5lousAAAAASUVORK5CYII=" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: -15px;">
+
+Jay L. Singleton
+
+View Point, COO
+
+JLS/mc
+
+cc: General Contractor
+</div>`;
+
+            document.getElementById('previewNoticeDocument').innerHTML = noticeLetterContent;
 
             // Generate the right to lien document
             const rightToLienContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">** NOTICE TO OWNER**</div>
