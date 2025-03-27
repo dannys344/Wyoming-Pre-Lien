@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pre-Lien Document Generator</title>
+    <title>View Point Document Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -61,11 +61,12 @@
             border: 1px solid #ddd;
             padding: 20px;
             background-color: white;
+            position: relative;
         }
         .hidden {
             display: none;
         }
-        #previewDocument {
+        .preview-document {
             font-family: 'Times New Roman', Times, serif;
             font-size: 12pt;
             line-height: 1.5;
@@ -107,6 +108,26 @@
         .select2-container {
             width: 100% !important;
         }
+        .preview-controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .preview-controls button {
+            background-color: #2196F3;
+            color: white;
+            padding: 8px 15px;
+        }
+        .preview-controls button.active {
+            background-color: #0b7dda;
+            font-weight: bold;
+        }
+        .logo-image {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
     </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -114,18 +135,19 @@
 </head>
 <body>
     <div class="container">
-        <h1>Pre-Lien Document Generator</h1>
+        <h1>View Point Document Generator</h1>
 
         <div class="tab">
-            <button class="tablinks active" onclick="openTab(event, 'FormTab')">Form</button>
+            <button class="tablinks active" onclick="openTab(event, 'NoticeRightToLienTab')">Notice of Right to Lien</button>
+            <button class="tablinks" onclick="openTab(event, 'NoticeLetterTab')">Notice Letter</button>
             <button class="tablinks" onclick="openTab(event, 'PreviewTab')">Preview</button>
         </div>
 
-        <div id="FormTab" class="tabcontent" style="display: block;">
+        <div id="NoticeRightToLienTab" class="tabcontent" style="display: block;">
             <!-- 1. Property Address -->
             <div class="form-group">
                 <label for="propertyAddress">Property Address:</label>
-                <input type="text" id="propertyAddress" placeholder="Enter property address">
+                <input type="text" id="propertyAddress" placeholder="Enter property address" onchange="updateNoticeLetterAddress()">
             </div>
 
             <!-- 2. Project Name -->
@@ -230,15 +252,53 @@
             </div>
 
             <div class="buttons">
-                <button onclick="generatePreview()">Preview Document</button>
+                <button onclick="generatePreview()">Preview Documents</button>
+            </div>
+        </div>
+
+        <div id="NoticeLetterTab" class="tabcontent">
+            <!-- 1. Current Date (auto-populated) -->
+            <div class="form-group">
+                <label for="letterDate">Current Date:</label>
+                <input type="text" id="letterDate" readonly>
+            </div>
+
+            <!-- 2. Certified Mail Number -->
+            <div class="form-group">
+                <label for="certifiedMailNumber">Certified Mail Number:</label>
+                <input type="text" id="certifiedMailNumber" placeholder="Enter certified mail number">
+            </div>
+
+            <!-- 3. Customer Name -->
+            <div class="form-group">
+                <label for="customerName">Customer Name:</label>
+                <input type="text" id="customerName" placeholder="Enter customer name">
+            </div>
+
+            <!-- 4. Property Address (auto-populated from Notice of Right to Lien) -->
+            <div class="form-group">
+                <label for="letterPropertyAddress">Property Address:</label>
+                <input type="text" id="letterPropertyAddress" placeholder="Enter property address">
+            </div>
+
+            <div class="buttons">
+                <button onclick="generatePreview()">Preview Documents</button>
             </div>
         </div>
 
         <div id="PreviewTab" class="tabcontent">
-            <div id="previewDocument"></div>
+            <div class="preview-controls">
+                <button id="previewLienBtn" onclick="showPreview('lien')" class="active">Notice of Right to Lien</button>
+                <button id="previewLetterBtn" onclick="showPreview('letter')">Notice Letter</button>
+            </div>
+            
+            <div id="previewLienDocument" class="preview-document"></div>
+            <div id="previewLetterDocument" class="preview-document" style="display: none;"></div>
+            
             <div class="buttons">
                 <button onclick="goBackToForm()">Edit Form</button>
-                <button onclick="generatePDF()">Download PDF</button>
+                <button onclick="generatePDF('lien')">Download Notice of Right to Lien PDF</button>
+                <button onclick="generatePDF('letter')">Download Notice Letter PDF</button>
             </div>
         </div>
     </div>
@@ -259,7 +319,17 @@
             document.getElementById('dayOfMonth').value = today.getDate();
             document.getElementById('currentMonth').selectedIndex = today.getMonth();
             document.getElementById('currentYear').value = today.getFullYear();
+            
+            // Format and set the current date for the Notice Letter
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('letterDate').value = today.toLocaleDateString('en-US', options);
         };
+
+        // Function to update Notice Letter address when Notice of Right to Lien address changes
+        function updateNoticeLetterAddress() {
+            const propertyAddress = document.getElementById('propertyAddress').value;
+            document.getElementById('letterPropertyAddress').value = propertyAddress;
+        }
 
         // Function to get the signature image - define once, use multiple times
         function getSignatureImg() {
@@ -280,10 +350,27 @@
             evt.currentTarget.className += " active";
         }
 
+        function showPreview(type) {
+            document.getElementById('previewLienDocument').style.display = 'none';
+            document.getElementById('previewLetterDocument').style.display = 'none';
+            
+            document.getElementById('previewLienBtn').classList.remove('active');
+            document.getElementById('previewLetterBtn').classList.remove('active');
+            
+            if (type === 'lien') {
+                document.getElementById('previewLienDocument').style.display = 'block';
+                document.getElementById('previewLienBtn').classList.add('active');
+            } else {
+                document.getElementById('previewLetterDocument').style.display = 'block';
+                document.getElementById('previewLetterBtn').classList.add('active');
+            }
+        }
+
         function goBackToForm() {
-            openTab(event, 'FormTab');
+            openTab(event, 'NoticeRightToLienTab');
             document.querySelector('.tablinks').classList.add('active');
             document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
+            document.querySelector('.tablinks:nth-child(3)').classList.remove('active');
         }
 
         function formatDate(dateString) {
@@ -295,6 +382,7 @@
         }
 
         function generatePreview() {
+            // Gather values for Notice of Right to Lien
             const propertyAddress = document.getElementById('propertyAddress').value || '[Property Address Not Provided]';
             const projectNameInput = document.getElementById('projectName').value;
             // Use property address as project name if project name is empty
@@ -318,7 +406,8 @@
             // Get the signature image from our function
             const signatureImg = getSignatureImg();
 
-            const documentContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">** NOTICE TO OWNER**</div>
+            // Generate Notice of Right to Lien document
+            const lienDocumentContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">** NOTICE TO OWNER**</div>
  
 The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property *can result* in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
  
@@ -408,13 +497,60 @@ My Commission Expires:
 Seal:
 </div>`;
 
-            document.getElementById('previewDocument').innerHTML = documentContent;
+            // Gather values for Notice Letter
+            const letterDate = document.getElementById('letterDate').value;
+            const certifiedMailNumber = document.getElementById('certifiedMailNumber').value || '[Certified Mail Number Not Provided]';
+            const customerName = document.getElementById('customerName').value || '[Customer Name Not Provided]';
+            const letterPropertyAddress = document.getElementById('letterPropertyAddress').value || '[Property Address Not Provided]';
+
+            // Generate Notice Letter document
+            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.5;">
+${letterDate}
+
+VIA CERTIFIED MAIL
+
+# ${certifiedMailNumber}
+
+Name: ${customerName}
+
+Address: ${letterPropertyAddress}
+
+To Whom It May Concern:
+
+Thank you for choosing View Point. We appreciate your business and look forward to working with you!
+
+Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is **not** a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
+
+If there are questions or concerns, please contact Michele Clark: (208) 854-1877
+
+<div style="margin-top: 20px;">
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAAA8CAYAAACMhGHSAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAWXSURBVHgB7ZvNbxtVFMXPm3HtJHYbElJFJaSKDUggFSGxYtV/qF3Un8qCPRISpSpdsGCBBKhqG5LEjj2+s3gzY6d1GiUZv/HHOdKRJx9+8bNn7r3n3vsUEARBEARBEARBEARBEARBEIQJyHCPWFsre/b16o9Hrq2tlXvwxqfG4OTYvs4qZC9BHxhfCqhbQmcDWJlBef95/DBdDaKcm8Zgf41GdY7s7j7eqQ8kWP8hAVrYO+QPKyhRoUDUQlU1aDSekYoA3gFlS8Ls/NNNBOg3kBw/wW5XUN67RJXnCO0qXg0PcPhoFVXn0XDU6XwQJFhvgLVU8fgvBSxrkLVN4cXoFPsdisyzC9RjJ6iLBVRFEyX6GM7oBDH3IM9Og54fGnKnKOLfGCd1VOkiPdXDsFvH7s5TtJ88TN9lnuMF6X3uLdX9Qa9TLTtfq05xQ+OXlh1lzTcfA7Msn+vwIw3KAnnpnwfXaafRQmU6yPwWAu8UVbQ/TFzswPde86V4ZN4aQqHAT7XmyP3wfdSpZUHT0fXQYLBTYZU45L/NuXeGHBf2aIEQN+kbB6GZO0HZ7GJoXs/Sn7B9XFWuq8/lYy6NNXvCTR+bpWUxvPOIlalO389+OBxj+8kBHj6q4vHjOZRUZJPTPhVjd5qPVqhqFlC2dHtKCmWM8/XUuRK09XXDC1oVfb+KPFGg/oBUxXPK3BUiWpzs+xQ1d4CRe2nvmcYzfZlMiV1XVdNPNurhGQbBAfrxfH0JlzL/+bwbRTdVPDMq3F29kS7QwI7RaC2SKpxiZ+dJ+tzHh59icNhCb7+Jk+Mn6TWfr9Pjy+4dTF3VfZ7fWvcPqtg+aKe/E/trtC8Pv2YysFe6MKQy+RKM13QLXdG5fY+UJ0SJnuGvlefDezGeMV/gdbFdUgJXppOSZYZFdm9JK3WDOw5H+N2gzmz8s+hHVQpChaJt8XyxdoSP+j72Dw4wiun4PUfXr1z10JU9LXw3C/vZ2j5OYQ3LL8/U9E85JXgbLt+vqH2Y2ZrVOGb9uMYxQn2gI3qZdxh4JTHPYzrxHIZdPNvfxvKD35BlMRWw/qEpnWzx/G666d5QhHHSMh9Mc2m2xmeXVdvQ0WTqFjMqaR29Rl6wjUmfT68vLI29Z3VaUvPoHcOzgM6kOoIoUQUcjIGW3zXqPaLvRCbT8Xz9K9x5EaFZXaGc0MGzlV3hQNVdTw9hGNH7uIEwIcwkczIytj5EZ3u5Frs6H7wIBL83GqX1q7sGzNyHOLVnZ1B0YTyFwsK4RlGdGaO3i+r4OTWX3YzGaZ7tqffqIzbbUwGl+UoNLKUsjO12msjE/eHrz5H3uwiC8zQIFCeXgkGd5+2hqZ5Tg+VcDy5lfbz0HE0r86Q+XMUyC2KUp2HT6/HTlrqtcRCozFPz1aAQsZitJYsJLisBbdWb2OmSOtYCgwZGMW31yWpwnXtLpfZQCwFLW9xqyLnfGnN1gvL2L5hfXKAOTXZNYDtWVMN22TwtwS+YHwLKOe+Z0aK2oOQoL1dGT/Fg5SWCYJsWdJfUq5qDQZTWyqX1uFAFZV3bM0vf5HcXTbWoIqqsj57jS53YrCxRQe5T4Z8hClv01D20O8eIbJeyc4Sk3KCO3LCCLnm3Xna1KmLT1qA+K0t1lOSLX9PoHrJcvZmqPm9RDTrLR6QshwjCYxgTIAx2EdodjZkiuiMnf11Z6Gj3VofDL2FMmD7wvX66I+r/6AkzJsUFArcDc+c0hl5ZMJHVdTMkZnGNQuHMKIp58OomBjGF0Vs/r2q57tEd0Dxq/jWe3aIjUiehk4B79DvN5f90siAIgiAIgiAIgiAIgiAIgiDMPP8ARM1JRk5lousAAAAASUVORK5CYII=" alt="View Point Logo" class="logo-image">
+</div>
+
+__________________
+Jay L. Singleton
+View Point, COO
+
+JLS/mc
+
+cc: General Contractor
+</div>`;
+
+            // Update the preview divs
+            document.getElementById('previewLienDocument').innerHTML = lienDocumentContent;
+            document.getElementById('previewLetterDocument').innerHTML = letterDocumentContent;
+            
+            // Switch to preview tab
             openTab(event, 'PreviewTab');
             document.querySelector('.tablinks').classList.remove('active');
-            document.querySelector('.tablinks:nth-child(2)').classList.add('active');
+            document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
+            document.querySelector('.tablinks:nth-child(3)').classList.add('active');
+            
+            // Show the lien document by default
+            showPreview('lien');
         }
 
-        function generatePDF() {
+        function generatePDF(type) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({
                 orientation: 'portrait',
@@ -422,7 +558,10 @@ Seal:
                 format: 'letter'
             });
 
-            const previewElement = document.getElementById('previewDocument');
+            // Determine which preview element to use based on type
+            const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
+            const filename = type === 'lien' ? 'notice-of-right-to-lien.pdf' : 'notice-letter.pdf';
+            const previewElement = document.getElementById(previewElementId);
             
             // Create a temporary div with proper styling for PDF generation
             const tempDiv = document.createElement('div');
@@ -458,7 +597,7 @@ Seal:
                     heightLeft -= pageHeight;
                 }
 
-                doc.save('pre-lien-document.pdf');
+                doc.save(filename);
                 document.body.removeChild(tempDiv);
             });
         }
