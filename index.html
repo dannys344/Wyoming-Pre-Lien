@@ -333,7 +333,9 @@
 
         // Function to get the signature image - now using the file path instead of base64
         function getSignatureImg() {
-            return `<img src="JaySignature.png" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: -15px;">`;
+            // Using an absolute path to ensure the image is found
+            // If in a subdirectory, you may need to adjust the path
+            return `<img src="/JaySignature.png" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: -15px;">`;
         }
 
         function openTab(evt, tabName) {
@@ -503,7 +505,7 @@ Because View Point is providing work and/or materials to your property, we are r
 If there are questions or concerns, please contact Michele Clark: (208) 854-1877
 
 <div style="margin-top: 20px;">
-<img src="JaySignature.png" alt="View Point Logo" class="logo-image">
+<img src="/JaySignature.png" alt="View Point Logo" class="logo-image">
 </div>
 
 __________________
@@ -534,7 +536,14 @@ cc: General Contractor
             const doc = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
-                format: 'letter'
+                format: 'letter',
+                // Adding margins to avoid content getting cut off
+                margins: {
+                    top: 20,
+                    bottom: 20,
+                    left: 20,
+                    right: 20
+                }
             });
 
             // Determine which preview element to use based on type
@@ -545,8 +554,10 @@ cc: General Contractor
             // Create a temporary div with proper styling for PDF generation
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = previewElement.innerHTML;
-            tempDiv.style.width = '180mm';
-            tempDiv.style.padding = '15mm';
+            // Reducing width to ensure content fits within page boundaries
+            tempDiv.style.width = '170mm';
+            // Increased padding to create more margin space
+            tempDiv.style.padding = '20mm';
             tempDiv.style.fontFamily = 'Times New Roman';
             tempDiv.style.fontSize = '12pt';
             tempDiv.style.lineHeight = '1.5';
@@ -557,22 +568,30 @@ cc: General Contractor
 
             html2canvas(tempDiv, {
                 scale: 2,
-                logging: false
+                logging: false,
+                // Ensuring all content is captured
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight
             }).then(canvas => {
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const imgWidth = 210; // A4 width in mm
-                const pageHeight = 297; // A4 height in mm
+                // Reduced width to account for margins
+                const imgWidth = 190; // Slightly narrower than A4 width (210mm)
+                const pageHeight = 277; // Reduced from A4 height (297mm) to account for margins
                 const imgHeight = canvas.height * imgWidth / canvas.width;
                 let heightLeft = imgHeight;
+                // Starting position adjusted to provide top margin
                 let position = 0;
 
-                doc.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                // Add image with margin offset
+                doc.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight);
                 heightLeft -= pageHeight;
 
                 while (heightLeft >= 0) {
                     position = heightLeft - imgHeight;
                     doc.addPage();
-                    doc.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                    // Add image with margin offset on subsequent pages too
+                    doc.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight);
                     heightLeft -= pageHeight;
                 }
 
