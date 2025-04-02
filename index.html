@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Point Document Generator</title>
     <!-- Replace jsPDF with docx.js for Word document generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.js"></script>
+    <!-- Keep jsPDF for PDF generation as a fallback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Add html-docx-js for Word document conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.3.1/html-docx.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         body {
@@ -309,8 +313,8 @@
             
             <div class="buttons">
                 <button onclick="goBackToForm()">Edit Form</button>
-                <button onclick="generateWordDoc('lien')">Download Notice of Right to Lien Word Doc</button>
-                <button onclick="generateWordDoc('letter')">Download Notice Letter Word Doc</button>
+                <button onclick="generateWordDocument('lien')">Download Notice of Right to Lien Word Doc</button>
+                <button onclick="generateWordDocument('letter')">Download Notice Letter Word Doc</button>
             </div>
         </div>
     </div>
