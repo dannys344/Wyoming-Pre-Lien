@@ -488,9 +488,9 @@ ${currentDate}
 TO: ${fullContractorInfo}
  
 PROJECT: ${projectName}
-FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">VIEW POINT, INC.</span>
+FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">VIEW POINT, INC.</span>
  
-DATE: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${currentDate}</span>
+DATE: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">${currentDate}</span>
  
 PAYMENT: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">${totalContractCost}</span>
  
@@ -500,17 +500,16 @@ By:
 ${signatureHtml}
 
 <div class="page-break"></div>
-STATE OF WYOMING
-)
-)  ss.
-COUNTY OF ${county.toUpperCase()}
-)
-This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${dayOfMonth}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${currentYear}</span>, by
+STATE OF WYOMING                                               )
+                                                                      )  ss.
+COUNTY OF _______________                                     )
+
+This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${dayOfMonth}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentYear}</span>, by
  
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px;"></span> as lien claimant or
+<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span> as lien claimant or
  
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px;"></span> of
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px;"></span>
+<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span> of
+<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span>
  
 (lien claimant).
  
@@ -581,98 +580,19 @@ cc: General Contractor
                 generatePreview();
             }
             
-            // Use promises to chain the download operations
-            generatePDFPromise('lien').then(function() {
-                return generatePDFPromise('letter');
-            }).catch(function(error) {
-                console.error("Error downloading documents:", error);
-            });
-        }
-        
-        function generatePDFPromise(type) {
-            return new Promise(function(resolve, reject) {
-                try {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF({
-                        orientation: 'portrait',
-                        unit: 'mm',
-                        format: 'letter'
-                    });
-                    
-                    // Determine which preview element to use based on type
-                    const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
-                    const propertyAddress = document.getElementById('propertyAddress').value || 'unknown-address';
-                    const sanitizedAddress = propertyAddress.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
-                    const filename = type === 'lien' ? 
-                        `Notice of Right to Lien - ${sanitizedAddress}.pdf` : 
-                        `Notice Letter - ${sanitizedAddress}.pdf`;
-                    
-                    const previewElement = document.getElementById(previewElementId);
-                    
-                    if (type === 'lien') {
-                        // For multi-page lien document
-                        const pageContents = previewElement.innerHTML.split('<div class="page-break"></div>');
-                        let pageIndex = 0;
-                        
-                        function processNextPage() {
-                            if (pageIndex >= pageContents.length) {
-                                doc.save(filename);
-                                resolve();
-                                return;
-                            }
-                            
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = pageContents[pageIndex];
-                            tempDiv.style.width = '215.9mm'; // Letter width
-                            tempDiv.style.padding = '15mm';
-                            tempDiv.style.fontFamily = 'Times New Roman';
-                            tempDiv.style.fontSize = '12pt';
-                            tempDiv.style.lineHeight = '1.5';
-                            tempDiv.style.whiteSpace = 'pre-wrap';
-                            tempDiv.style.backgroundColor = 'white';
-                            document.body.appendChild(tempDiv);
-                            
-                            html2canvas(tempDiv, {
-                                scale: 2,
-                                backgroundColor: 'white',
-                                logging: false
-                            }).then(canvas => {
-                                const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                                const imgWidth = 190; // Slightly narrower than page for margins
-                                const imgHeight = canvas.height * imgWidth / canvas.width;
-                                
-                                if (pageIndex > 0) {
-                                    doc.addPage();
-                                }
-                                
-                                doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
-                                document.body.removeChild(tempDiv);
-                                
-                                pageIndex++;
-                                processNextPage();
-                            });
-                        }
-                        
-                        processNextPage();
-                    } else {
-                        // For single page letter document
-                        html2canvas(previewElement, {
-                            scale: 2,
-                            backgroundColor: 'white',
-                            logging: false
-                        }).then(canvas => {
-                            const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                            const imgWidth = 190;
-                            const imgHeight = canvas.height * imgWidth / canvas.width;
-                            
-                            doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
-                            doc.save(filename);
-                            resolve();
-                        }).catch(reject);
-                    }
-                } catch (error) {
-                    reject(error);
-                }
+            // Create a promise-based version of PDF generation for sequential execution
+            const downloadLien = () => {
+                return new Promise((resolve) => {
+                    // Use the existing generatePDF function for the lien document
+                    generatePDF('lien');
+                    // Wait a bit for the first PDF to complete downloading
+                    setTimeout(resolve, 1500);
+                });
+            };
+            
+            // Execute the downloads in sequence
+            downloadLien().then(() => {
+                generatePDF('letter');
             });
         }
         
