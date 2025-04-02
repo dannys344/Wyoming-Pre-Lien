@@ -161,12 +161,12 @@
         <h1>View Point Document Generator</h1>
         
         <!-- Clear Form Button -->
-        <button class="clear-button" onclick="clearForm()">Clear All Fields</button>
+        <button type="button" class="clear-button" onclick="clearForm()">Clear All Fields</button>
 
         <div class="tab">
-            <button class="tablinks active" onclick="openTab(event, 'NoticeRightToLienTab')">Notice of Right to Lien</button>
-            <button class="tablinks" onclick="openTab(event, 'NoticeLetterTab')">Notice Letter</button>
-            <button class="tablinks" onclick="openTab(event, 'PreviewTab')">Preview</button>
+            <button type="button" class="tablinks active" onclick="openTab(event, 'NoticeRightToLienTab')">Notice of Right to Lien</button>
+            <button type="button" class="tablinks" onclick="openTab(event, 'NoticeLetterTab')">Notice Letter</button>
+            <button type="button" class="tablinks" onclick="openTab(event, 'PreviewTab')">Preview</button>
         </div>
 
         <div id="NoticeRightToLienTab" class="tabcontent" style="display: block;">
@@ -278,7 +278,7 @@
             </div>
 
             <div class="buttons">
-                <button onclick="generatePreview()">Preview Documents</button>
+                <button type="button" onclick="generatePreview()">Preview Documents</button>
             </div>
         </div>
 
@@ -308,23 +308,23 @@
             </div>
 
             <div class="buttons">
-                <button onclick="generatePreview()">Preview Documents</button>
+                <button type="button" onclick="generatePreview()">Preview Documents</button>
             </div>
         </div>
 
         <div id="PreviewTab" class="tabcontent">
             <div class="preview-controls">
-                <button id="previewLienBtn" onclick="showPreview('lien')" class="active">Notice of Right to Lien</button>
-                <button id="previewLetterBtn" onclick="showPreview('letter')">Notice Letter</button>
+                <button type="button" id="previewLienBtn" onclick="showPreview('lien')" class="active">Notice of Right to Lien</button>
+                <button type="button" id="previewLetterBtn" onclick="showPreview('letter')">Notice Letter</button>
             </div>
             
             <div id="previewLienDocument" class="preview-document"></div>
             <div id="previewLetterDocument" class="preview-document" style="display: none;"></div>
             
             <div class="buttons">
-                <button onclick="goBackToForm()">Edit Form</button>
-                <button onclick="generatePDF('lien')">Download Notice of Right to Lien PDF</button>
-                <button onclick="generatePDF('letter')">Download Notice Letter PDF</button>
+                <button type="button" onclick="goBackToForm()">Edit Form</button>
+                <button type="button" onclick="generatePDF('lien')">Download Notice of Right to Lien PDF</button>
+                <button type="button" onclick="generatePDF('letter')">Download Notice Letter PDF</button>
             </div>
         </div>
     </div>
@@ -397,6 +397,9 @@
         }
 
         function openTab(evt, tabName) {
+            // Store the event object if not provided (for cases when called programmatically)
+            const event = evt || window.event;
+            
             var i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tabcontent");
             for (i = 0; i < tabcontent.length; i++) {
@@ -407,7 +410,11 @@
                 tablinks[i].className = tablinks[i].className.replace(" active", "");
             }
             document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
+            
+            // Only add active class if evt is provided
+            if (event && event.currentTarget) {
+                event.currentTarget.className += " active";
+            }
         }
 
         function showPreview(type) {
@@ -427,8 +434,11 @@
         }
 
         function goBackToForm() {
-            openTab(event, 'NoticeRightToLienTab');
-            document.querySelector('.tablinks').classList.add('active');
+            // Open the first tab
+            openTab(null, 'NoticeRightToLienTab');
+            
+            // Update the active classes manually
+            document.querySelector('.tablinks:nth-child(1)').classList.add('active');
             document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
             document.querySelector('.tablinks:nth-child(3)').classList.remove('active');
         }
