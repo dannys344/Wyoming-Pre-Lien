@@ -1,37 +1,474 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- Rest of the HTML remains unchanged -->
-<!-- The only change is in the lien waiver section of the generatePreview function -->
-<script>
-    // All other functions remain the same
-    
-    function generatePreview() {
-        // Gather values for Notice of Right to Lien
-        const propertyAddress = document.getElementById('propertyAddress').value || '[Property Address Not Provided]';
-        const projectNameInput = document.getElementById('projectName').value;
-        // Use property address as project name if project name is empty
-        const projectName = projectNameInput || propertyAddress;
-        const county = document.getElementById('county').value || '[County Not Provided]';
-        const parcelId = document.getElementById('parcelId').value || '[Parcel ID Not Provided]';
-        const legalDescription = document.getElementById('legalDescription').value || '[Legal Description Not Provided]';
-        const contractorInfo = document.getElementById('contractorInfo').value || '[Contractor Information Not Provided]';
-        const contractorAddress = document.getElementById('contractorAddress').value || '[Contractor Address Not Provided]';
-        const totalContractCost = document.getElementById('totalContractCost').value || '[Amount Not Provided]';
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Point Document Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 80px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .preview-container {
+            margin-top: 30px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            background-color: white;
+            position: relative;
+        }
+        .hidden {
+            display: none;
+        }
+        .preview-document {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            margin-bottom: 20px;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            color: black;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+        .select2-container {
+            width: 100% !important;
+        }
+        .preview-controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .preview-controls button {
+            background-color: #2196F3;
+            color: white;
+            padding: 8px 15px;
+        }
+        .preview-controls button.active {
+            background-color: #0b7dda;
+            font-weight: bold;
+        }
+        .logo-image {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .page-break {
+            page-break-after: always;
+            margin-bottom: 30px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .signature-text {
+            font-family: 'Brush Script MT', cursive;
+            font-size: 24px;
+            line-height: 1;
+            margin-bottom: 0;
+        }
+        /* Clear Form Button in top right */
+        .clear-button {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background-color: #f44336;
+            color: white;
+        }
+        .clear-button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>View Point Document Generator</h1>
         
-        // Date values
-        const currentDate = formatDate(document.getElementById('currentDate').value);
-        const dayOfMonth = document.getElementById('dayOfMonth').value || '[Day Not Provided]';
-        const currentMonth = document.getElementById('currentMonth').value;
-        const currentYear = document.getElementById('currentYear').value || '[Year Not Provided]';
+        <!-- Clear Form Button -->
+        <button class="clear-button" onclick="clearForm()">Clear All Fields</button>
 
-        // Combine contractor info and address for the TO: field
-        const fullContractorInfo = `${contractorInfo}\n${contractorAddress}`;
-        
-        // Get the signature HTML
-        const signatureHtml = getSignatureHtml();
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'NoticeRightToLienTab')">Notice of Right to Lien</button>
+            <button class="tablinks" onclick="openTab(event, 'NoticeLetterTab')">Notice Letter</button>
+            <button class="tablinks" onclick="openTab(event, 'PreviewTab')">Preview</button>
+        </div>
 
-        // Generate Notice of Right to Lien document with page breaks
-        const lienDocumentContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">NOTICE TO OWNER</div>
+        <div id="NoticeRightToLienTab" class="tabcontent" style="display: block;">
+            <!-- 1. Property Address -->
+            <div class="form-group">
+                <label for="propertyAddress">Property Address:</label>
+                <input type="text" id="propertyAddress" placeholder="Enter property address" onchange="updateNoticeLetterAddress()">
+            </div>
+
+            <!-- 2. Project Name -->
+            <div class="form-group">
+                <label for="projectName">Project Name (if empty, will use Property Address):</label>
+                <input type="text" id="projectName" placeholder="Enter project name">
+            </div>
+
+            <!-- 3. County (Dropdown) -->
+            <div class="form-group">
+                <label for="county">County:</label>
+                <select id="county" class="county-select">
+                    <option value="">Select a county</option>
+                    <option value="Albany County">Albany County</option>
+                    <option value="Big Horn County">Big Horn County</option>
+                    <option value="Campbell County">Campbell County</option>
+                    <option value="Carbon County">Carbon County</option>
+                    <option value="Converse County">Converse County</option>
+                    <option value="Crook County">Crook County</option>
+                    <option value="Fremont County">Fremont County</option>
+                    <option value="Goshen County">Goshen County</option>
+                    <option value="Hot Springs County">Hot Springs County</option>
+                    <option value="Johnson County">Johnson County</option>
+                    <option value="Laramie County">Laramie County</option>
+                    <option value="Lincoln County">Lincoln County</option>
+                    <option value="Natrona County">Natrona County</option>
+                    <option value="Niobrara County">Niobrara County</option>
+                    <option value="Park County">Park County</option>
+                    <option value="Platte County">Platte County</option>
+                    <option value="Sheridan County">Sheridan County</option>
+                    <option value="Sublette County">Sublette County</option>
+                    <option value="Sweetwater County">Sweetwater County</option>
+                    <option value="Teton County">Teton County</option>
+                    <option value="Uinta County">Uinta County</option>
+                    <option value="Washakie County">Washakie County</option>
+                    <option value="Weston County">Weston County</option>
+                </select>
+            </div>
+
+            <!-- 4. Parcel Identification -->
+            <div class="form-group">
+                <label for="parcelId">Parcel Identification:</label>
+                <input type="text" id="parcelId" placeholder="Enter parcel ID">
+            </div>
+
+            <!-- 5. Legal Description -->
+            <div class="form-group">
+                <label for="legalDescription">Legal Description:</label>
+                <textarea id="legalDescription" placeholder="Enter legal description here"></textarea>
+            </div>
+
+            <!-- 6. Contractor Contact Information -->
+            <div class="form-group">
+                <label for="contractorInfo">Contractor Contact Information (Name, Mobile, Email):</label>
+                <textarea id="contractorInfo" placeholder="Example: John Smith Mobile: (555) 123-4567 john.smith@example.com"></textarea>
+            </div>
+
+            <!-- 7. Contractor Address -->
+            <div class="form-group">
+                <label for="contractorAddress">Contractor Address:</label>
+                <textarea id="contractorAddress" placeholder="Example: ABC Construction 123 Main St, Suite 100 Anytown, WY 82001"></textarea>
+            </div>
+
+            <!-- 8. Total Contract Cost -->
+            <div class="form-group">
+                <label for="totalContractCost">Total Contract Cost ($):</label>
+                <input type="number" id="totalContractCost" placeholder="Enter total contract cost" step="0.01">
+            </div>
+
+            <!-- Hidden date fields -->
+            <div class="form-group hidden">
+                <label for="currentDate">Current Date:</label>
+                <input type="date" id="currentDate">
+            </div>
+
+            <div class="form-group hidden">
+                <label for="dayOfMonth">Day of Month:</label>
+                <input type="number" id="dayOfMonth" min="1" max="31" placeholder="Enter day of month">
+            </div>
+
+            <div class="form-group hidden">
+                <label for="currentMonth">Current Month:</label>
+                <select id="currentMonth">
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                    <option value="April">April</option>
+                    <option value="May">May</option>
+                    <option value="June">June</option>
+                    <option value="July">July</option>
+                    <option value="August">August</option>
+                    <option value="September">September</option>
+                    <option value="October">October</option>
+                    <option value="November">November</option>
+                    <option value="December">December</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden">
+                <label for="currentYear">Current Year:</label>
+                <input type="number" id="currentYear" placeholder="Enter current year">
+            </div>
+
+            <div class="buttons">
+                <button onclick="generatePreview()">Preview Documents</button>
+            </div>
+        </div>
+
+        <div id="NoticeLetterTab" class="tabcontent">
+            <!-- 1. Current Date (auto-populated) -->
+            <div class="form-group">
+                <label for="letterDate">Current Date:</label>
+                <input type="text" id="letterDate" readonly>
+            </div>
+
+            <!-- 2. Certified Mail Number -->
+            <div class="form-group">
+                <label for="certifiedMailNumber">Certified Mail Number:</label>
+                <input type="text" id="certifiedMailNumber" placeholder="Enter certified mail number">
+            </div>
+
+            <!-- 3. Customer Name -->
+            <div class="form-group">
+                <label for="customerName">Customer Name:</label>
+                <input type="text" id="customerName" placeholder="Enter customer name">
+            </div>
+
+            <!-- 4. Property Address (auto-populated from Notice of Right to Lien) -->
+            <div class="form-group">
+                <label for="letterPropertyAddress">Property Address:</label>
+                <input type="text" id="letterPropertyAddress" placeholder="Enter property address">
+            </div>
+
+            <div class="buttons">
+                <button onclick="generatePreview()">Preview Documents</button>
+            </div>
+        </div>
+
+        <div id="PreviewTab" class="tabcontent">
+            <div class="preview-controls">
+                <button id="previewLienBtn" onclick="showPreview('lien')" class="active">Notice of Right to Lien</button>
+                <button id="previewLetterBtn" onclick="showPreview('letter')">Notice Letter</button>
+            </div>
+            
+            <div id="previewLienDocument" class="preview-document"></div>
+            <div id="previewLetterDocument" class="preview-document" style="display: none;"></div>
+            
+            <div class="buttons">
+                <button onclick="goBackToForm()">Edit Form</button>
+                <button onclick="generatePDF('lien')">Download Notice of Right to Lien PDF</button>
+                <button onclick="generatePDF('letter')">Download Notice Letter PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Select2 for county dropdown
+        $(document).ready(function() {
+            $('.county-select').select2({
+                placeholder: "Select a county or start typing to search",
+                allowClear: true
+            });
+        });
+
+        // Set default date values
+        window.onload = function() {
+            const today = new Date();
+            const realToday = new Date(); // Store the actual current date
+            document.getElementById('currentDate').valueAsDate = realToday;
+            document.getElementById('dayOfMonth').value = realToday.getDate();
+            document.getElementById('currentMonth').selectedIndex = realToday.getMonth();
+            document.getElementById('currentYear').value = realToday.getFullYear();
+            
+            // Format and set the current date for the Notice Letter
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('letterDate').value = realToday.toLocaleDateString('en-US', options);
+        };
+
+        // Function to clear all form fields
+        function clearForm() {
+            // Clear all input fields in the Notice of Right to Lien tab
+            document.getElementById('propertyAddress').value = '';
+            document.getElementById('projectName').value = '';
+            document.getElementById('county').value = '';
+            $('.county-select').val('').trigger('change'); // Clear Select2 dropdown
+            document.getElementById('parcelId').value = '';
+            document.getElementById('legalDescription').value = '';
+            document.getElementById('contractorInfo').value = '';
+            document.getElementById('contractorAddress').value = '';
+            document.getElementById('totalContractCost').value = '';
+            
+            // Clear fields in the Notice Letter tab
+            document.getElementById('certifiedMailNumber').value = '';
+            document.getElementById('customerName').value = '';
+            document.getElementById('letterPropertyAddress').value = '';
+            
+            // Reset date fields to current date
+            const today = new Date();
+            document.getElementById('currentDate').valueAsDate = today;
+            document.getElementById('dayOfMonth').value = today.getDate();
+            document.getElementById('currentMonth').selectedIndex = today.getMonth();
+            document.getElementById('currentYear').value = today.getFullYear();
+            
+            // Format and set the current date for the Notice Letter
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('letterDate').value = today.toLocaleDateString('en-US', options);
+            
+            // Show confirmation to user
+            alert('All form fields have been cleared.');
+        }
+
+        // Function to update Notice Letter address when Notice of Right to Lien address changes
+        function updateNoticeLetterAddress() {
+            const propertyAddress = document.getElementById('propertyAddress').value;
+            document.getElementById('letterPropertyAddress').value = propertyAddress;
+        }
+
+        // Function to get the signature as an image
+        function getSignatureHtml() {
+            return `<img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: 0px;"><br>Jay L. Singleton, COO`;
+        }
+
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        function showPreview(type) {
+            document.getElementById('previewLienDocument').style.display = 'none';
+            document.getElementById('previewLetterDocument').style.display = 'none';
+            
+            document.getElementById('previewLienBtn').classList.remove('active');
+            document.getElementById('previewLetterBtn').classList.remove('active');
+            
+            if (type === 'lien') {
+                document.getElementById('previewLienDocument').style.display = 'block';
+                document.getElementById('previewLienBtn').classList.add('active');
+            } else {
+                document.getElementById('previewLetterDocument').style.display = 'block';
+                document.getElementById('previewLetterBtn').classList.add('active');
+            }
+        }
+
+        function goBackToForm() {
+            openTab(event, 'NoticeRightToLienTab');
+            document.querySelector('.tablinks').classList.add('active');
+            document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
+            document.querySelector('.tablinks:nth-child(3)').classList.remove('active');
+        }
+
+        function formatDate(dateString) {
+            // Always use the current date instead of the one from the input
+            const date = new Date();
+            const month = date.toLocaleString('default', { month: 'long' });
+            const day = date.getDate();
+            const year = date.getFullYear();
+            return `${month} ${day}, ${year}`;
+        }
+
+        function generatePreview() {
+            // Gather values for Notice of Right to Lien
+            const propertyAddress = document.getElementById('propertyAddress').value || '[Property Address Not Provided]';
+            const projectNameInput = document.getElementById('projectName').value;
+            // Use property address as project name if project name is empty
+            const projectName = projectNameInput || propertyAddress;
+            const county = document.getElementById('county').value || '[County Not Provided]';
+            const parcelId = document.getElementById('parcelId').value || '[Parcel ID Not Provided]';
+            const legalDescription = document.getElementById('legalDescription').value || '[Legal Description Not Provided]';
+            const contractorInfo = document.getElementById('contractorInfo').value || '[Contractor Information Not Provided]';
+            const contractorAddress = document.getElementById('contractorAddress').value || '[Contractor Address Not Provided]';
+            const totalContractCost = document.getElementById('totalContractCost').value || '[Amount Not Provided]';
+            
+            // Date values
+            const currentDate = formatDate(document.getElementById('currentDate').value);
+            const dayOfMonth = document.getElementById('dayOfMonth').value || '[Day Not Provided]';
+            const currentMonth = document.getElementById('currentMonth').value;
+            const currentYear = document.getElementById('currentYear').value || '[Year Not Provided]';
+
+            // Combine contractor info and address for the TO: field
+            const fullContractorInfo = `${contractorInfo}\n${contractorAddress}`;
+            
+            // Get the signature HTML
+            const signatureHtml = getSignatureHtml();
+
+            // Generate Notice of Right to Lien document with page breaks
+            const lienDocumentContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">NOTICE TO OWNER</div>
  
 The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property can result in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
  
@@ -124,7 +561,7 @@ To Whom It May Concern:
 
 Thank you for choosing View Point. We appreciate your business and look forward to working with you!
 
-Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is not a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
+Because View Point is providing work and/or materials to your property, we are required by the State of WYOMING to provide you with the enclosed document and form Lien Waiver. This is not a Notice of Lien; our intention is to inform the property owner of The State of WYOMING's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
 
 If there are questions or concerns, please contact Michele Clark: (208) 854-1877
 
@@ -135,4 +572,100 @@ View Point, COO
 
 JLS/mc
 cc: General Contractor
-</div
+</div>`;
+
+            // Update the preview divs
+            document.getElementById('previewLienDocument').innerHTML = lienDocumentContent;
+            document.getElementById('previewLetterDocument').innerHTML = letterDocumentContent;
+            
+            // Switch to preview tab
+            openTab(event, 'PreviewTab');
+            document.querySelector('.tablinks').classList.remove('active');
+            document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
+            document.querySelector('.tablinks:nth-child(3)').classList.add('active');
+            
+            // Show the lien document by default
+            showPreview('lien');
+        }
+
+        function generatePDF(type) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'letter'
+            });
+
+            // Determine which preview element to use based on type
+            const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
+            const propertyAddress = document.getElementById('propertyAddress').value || 'unknown-address';
+            const sanitizedAddress = propertyAddress.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
+            const filename = type === 'lien' ? 
+                `Notice of Right to Lien - ${sanitizedAddress}.pdf` : 
+                `Notice Letter - ${sanitizedAddress}.pdf`;
+            
+            const previewElement = document.getElementById(previewElementId);
+            
+            if (type === 'lien') {
+                // For multi-page lien document
+                const pageContents = previewElement.innerHTML.split('<div class="page-break"></div>');
+                let pageIndex = 0;
+                
+                function processNextPage() {
+                    if (pageIndex >= pageContents.length) {
+                        doc.save(filename);
+                        return;
+                    }
+                    
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = pageContents[pageIndex];
+                    tempDiv.style.width = '215.9mm'; // Letter width
+                    tempDiv.style.padding = '15mm';
+                    tempDiv.style.fontFamily = 'Times New Roman';
+                    tempDiv.style.fontSize = '12pt';
+                    tempDiv.style.lineHeight = '1.5';
+                    tempDiv.style.whiteSpace = 'pre-wrap';
+                    tempDiv.style.backgroundColor = 'white';
+                    document.body.appendChild(tempDiv);
+                    
+                    html2canvas(tempDiv, {
+                        scale: 2,
+                        backgroundColor: 'white',
+                        logging: false
+                    }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                        const imgWidth = 190; // Slightly narrower than page for margins
+                        const imgHeight = canvas.height * imgWidth / canvas.width;
+                        
+                        if (pageIndex > 0) {
+                            doc.addPage();
+                        }
+                        
+                        doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                        document.body.removeChild(tempDiv);
+                        
+                        pageIndex++;
+                        processNextPage();
+                    });
+            }
+        }
+    </script>
+</body>
+</html>
+                }
+                
+                processNextPage();
+            } else {
+                // For single page letter document
+                html2canvas(previewElement, {
+                    scale: 2,
+                    backgroundColor: 'white',
+                    logging: false
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    const imgWidth = 190;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    
+                    doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                    doc.save(filename);
+                });
