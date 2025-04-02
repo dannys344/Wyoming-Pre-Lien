@@ -1,175 +1,100 @@
-function openTab(evt, tabName) {
-    var i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    document.getElementById(tabName).style.display = "block";
-    if (evt) { // Check if evt exists before using it
-        evt.currentTarget.className += " active";
+function generatePDF(type) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'letter'
+    });
+
+    // Determine which preview element to use based on type
+    const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
+    const propertyAddress = document.getElementById('propertyAddress').value || 'unknown-address';
+    const sanitizedAddress = propertyAddress.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
+    const filename = type === 'lien' ? 
+        `Notice of Right to Lien - ${sanitizedAddress}.pdf` : 
+        `Notice Letter - ${sanitizedAddress}.pdf`;
+    
+    const previewElement = document.getElementById(previewElementId);
+    
+    if (type === 'lien') {
+        // For the lien document with multiple pages
+        // Split content by page breaks
+        const pageContents = previewElement.innerHTML.split('<div class="page-break"></div>');
+        let promiseChain = Promise.resolve();
+        let pageCanvases = [];
+        
+        // Create a canvas for each page
+        pageContents.forEach((content, index) => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            tempDiv.style.width = '215.9mm'; // Letter width
+            tempDiv.style.padding = '15mm';
+            tempDiv.style.fontFamily = 'Times New Roman';
+            tempDiv.style.fontSize = '12pt';
+            tempDiv.style.lineHeight = '1.5';
+            tempDiv.style.whiteSpace = 'pre-wrap';
+            tempDiv.style.backgroundColor = 'white';
+            
+            // Add to DOM temporarily
+            document.body.appendChild(tempDiv);
+            
+            // Create a promise chain that processes each page sequentially
+            promiseChain = promiseChain
+                .then(() => html2canvas(tempDiv, {
+                    scale: 2,
+                    backgroundColor: 'white',
+                    logging: false
+                }))
+                .then(canvas => {
+                    pageCanvases.push(canvas);
+                    document.body.removeChild(tempDiv);
+                });
+        });
+        
+        // After all pages are processed, add them to the PDF
+        promiseChain.then(() => {
+            pageCanvases.forEach((canvas, index) => {
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const imgWidth = 190; // Slightly narrower than page for margins
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                
+                if (index > 0) {
+                    doc.addPage();
+                }
+                
+                doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+            });
+            
+            doc.save(filename);
+        });
     } else {
-        // If no event is provided, find the appropriate button and make it active
-        const buttons = document.querySelectorAll('.tablinks');
-        for (let btn of buttons) {
-            if (btn.textContent.includes(tabName.replace('Tab', ''))) {
-                btn.className += " active";
-                break;
+        // For single page letter document
+        html2canvas(previewElement, {
+            scale: 2,
+            backgroundColor: 'white',
+            logging: false
+        }).then(canvas => {
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const imgWidth = 190;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            
+            doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+            
+            // Check if we need multiple pages
+            if (imgHeight > 277) { // Height of US Letter minus margins
+                const pageHeight = 277;
+                let heightLeft = imgHeight - pageHeight;
+                let position = -pageHeight; // First position is negative because we're moving up
+                
+                while (heightLeft > 0) {
+                    position -= pageHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
             }
-        }
+            
+            doc.save(filename);
+        });
     }
-}
-
-function goBackToForm() {
-    // Use a mock event object to avoid the event reference issue
-    const mockEvent = {
-        currentTarget: document.querySelector('.tablinks')
-    };
-    openTab(mockEvent, 'NoticeRightToLienTab');
-}
-
-function generatePreview() {
-    // Gather values for Notice of Right to Lien
-    const propertyAddress = document.getElementById('propertyAddress').value || '[Property Address Not Provided]';
-    const projectNameInput = document.getElementById('projectName').value;
-    // Use property address as project name if project name is empty
-    const projectName = projectNameInput || propertyAddress;
-    const county = document.getElementById('county').value || '[County Not Provided]';
-    const parcelId = document.getElementById('parcelId').value || '[Parcel ID Not Provided]';
-    const legalDescription = document.getElementById('legalDescription').value || '[Legal Description Not Provided]';
-    const contractorInfo = document.getElementById('contractorInfo').value || '[Contractor Information Not Provided]';
-    const contractorAddress = document.getElementById('contractorAddress').value || '[Contractor Address Not Provided]';
-    const totalContractCost = document.getElementById('totalContractCost').value || '[Amount Not Provided]';
-    
-    // Date values
-    const currentDate = formatDate(document.getElementById('currentDate').value);
-    const dayOfMonth = document.getElementById('dayOfMonth').value || '[Day Not Provided]';
-    const currentMonth = document.getElementById('currentMonth').value;
-    const currentYear = document.getElementById('currentYear').value || '[Year Not Provided]';
-
-    // Combine contractor info and address for the TO: field
-    const fullContractorInfo = `${contractorInfo}\n${contractorAddress}`;
-    
-    // Get the signature HTML
-    const signatureHtml = getSignatureHtml();
-
-    // Generate Notice of Right to Lien document with page breaks
-    const lienDocumentContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">NOTICE TO OWNER</div>
- 
-The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property can result in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
- 
-Name, address and telephone number of contractor, subcontractor or materialman, and contact person:
- View Point, Inc.
- 6175 W. State Street
- Boise, ID 83714
- 
- Contact: Michele Clark
-              (208) 854-1877
- 
-MATERIALS PROVIDED/WORK PERFORMED:
-BUILDING MATERIALS AND LABOR
- 
-PROPERTY DESCRIPTION: ${legalDescription}
- 
-ADDRESS: ${propertyAddress}
- 
-PARCEL IDENTIFICATION: ${parcelId}
-SIGNED:        
-                        ${signatureHtml}
- 
-${currentDate}
-
-<div class="page-break"></div>
-<div style="text-align: left; margin-bottom: 10px;">${currentDate}</div>
-<div style="text-align: center; font-weight: bold; margin-bottom: 10px;">LIEN WAIVER</div>
- 
-TO: ${fullContractorInfo}
- 
-PROJECT: ${projectName}
-FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">VIEW POINT, INC.</span>
- 
-DATE: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${currentDate}</span>
- 
-PAYMENT: $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${totalContractCost}</span>
- 
-In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
- 
-By:
-${signatureHtml}
-
-<div class="page-break"></div>
-STATE OF Wyoming 
-)
-)
-ss.
-COUNTY OF ${county} 
-)
-This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${dayOfMonth}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${currentYear}</span>, by
- 
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px;"></span> as lien claimant or
- 
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px;"></span> of
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px;"></span>
- 
-(lien claimant).
- 
-IN WITNESS THEREOF, I have hereunto set my hand and affixed my official seal on the day and year last above written.
- 
-______________________________
-Notarial officer
-My Commission Expires:
-Seal:
-</div>`;
-
-    // Gather values for Notice Letter
-    const letterDate = document.getElementById('letterDate').value;
-    const certifiedMailNumber = document.getElementById('certifiedMailNumber').value || '[Certified Mail Number Not Provided]';
-    const customerName = document.getElementById('customerName').value || '[Customer Name Not Provided]';
-    const letterPropertyAddress = document.getElementById('letterPropertyAddress').value || '[Property Address Not Provided]';
-
-    // Generate Notice Letter document
-    const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.3; padding-top: 0;">
-<div style="text-align: center; margin-top: -20px; margin-bottom: 5px;">
-<img src="Viewpoint Logo.jpg" alt="View Point Logo" style="max-width: 200px; margin-bottom: 0px;"><br>
-<span style="font-weight: bold;">View Point, Inc.</span>
-6715 W. State Street • Boise, ID. 83714
-Telephone (208) 854-1877 • Fax (208) 854-1878
-<a href="http://www.viewpointwindows.com" style="color: blue; text-decoration: underline;">www.viewpointwindows.com</a>
-</div>
-${letterDate}
-VIA CERTIFIED MAIL
-# ${certifiedMailNumber}
-
-Name: ${customerName}
-Address: ${letterPropertyAddress}
-
-To Whom It May Concern:
-
-Thank you for choosing View Point. We appreciate your business and look forward to working with you!
-
-Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is not a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
-
-If there are questions or concerns, please contact Michele Clark: (208) 854-1877
-
-<img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 180px; margin-top: 5px; margin-bottom: -10px;">
-__________________
-Jay L. Singleton
-View Point, COO
-
-JLS/mc
-cc: General Contractor
-</div>`;
-
-    // Update the preview divs
-    document.getElementById('previewLienDocument').innerHTML = lienDocumentContent;
-    document.getElementById('previewLetterDocument').innerHTML = letterDocumentContent;
-    
-    // Switch to preview tab without using event
-    openTab(null, 'PreviewTab');
-    
-    // Show the lien document by default
-    showPreview('lien');
 }
