@@ -1,4 +1,24 @@
-<!DOCTYPE html>
+function downloadAllDocuments() {
+            // First generate preview if it hasn't been generated yet
+            if (document.getElementById('previewLienDocument').innerHTML === '') {
+                generatePreview();
+            }
+            
+            // Create a promise-based version of PDF generation for sequential execution
+            const downloadLien = () => {
+                return new Promise((resolve) => {
+                    // Use the existing generatePDF function for the lien document
+                    generatePDF('lien');
+                    // Wait a bit for the first PDF to complete downloading
+                    setTimeout(resolve, 1500);
+                });
+            };
+            
+            // Execute the downloads in sequence
+            downloadLien().then(() => {
+                generatePDF('letter');
+            });
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -155,6 +175,7 @@
 <body>
     <div class="container">
         <button type="button" style="position: absolute; top: 20px; left: 20px; background-color: #3d85c6; color: white;" onclick="downloadAllDocuments()">Download All Documents</button>
+        <button type="button" style="position: absolute; top: 20px; left: 180px; background-color: #4CAF50; color: white;" onclick="previewAllDocuments()">Preview All Documents</button>
         <h1>View Point Document Generator</h1>
         <button type="button" class="clear-button" onclick="clearAllFields()">Clear All Fields</button>
 
@@ -421,6 +442,28 @@
             document.querySelector('.tablinks:nth-child(3)').classList.remove('active');
         }
 
+        // Function to get day with ordinal suffix (1st, 2nd, 3rd, etc.)
+        function getDayWithOrdinal(day) {
+            if (!day) return '';
+            
+            const num = parseInt(day, 10);
+            if (isNaN(num)) return day;
+            
+            const j = num % 10;
+            const k = num % 100;
+            
+            if (j === 1 && k !== 11) {
+                return num + "st";
+            }
+            if (j === 2 && k !== 12) {
+                return num + "nd";
+            }
+            if (j === 3 && k !== 13) {
+                return num + "rd";
+            }
+            return num + "th";
+        }
+
         function formatDate(dateString) {
             // Always use the current date instead of the one from the input
             const date = new Date();
@@ -445,7 +488,8 @@
             
             // Date values
             const currentDate = formatDate(document.getElementById('currentDate').value);
-            const dayOfMonth = document.getElementById('dayOfMonth').value || '[Day Not Provided]';
+            const dayValue = document.getElementById('dayOfMonth').value || new Date().getDate();
+            const dayWithOrdinal = getDayWithOrdinal(dayValue);
             const currentMonth = document.getElementById('currentMonth').value;
             const currentYear = document.getElementById('currentYear').value || '[Year Not Provided]';
 
@@ -504,7 +548,7 @@ STATE OF WYOMING                                               )
                                                                       )  ss.
 COUNTY OF _______________                                     )
 
-This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${dayOfMonth}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentYear}</span>, by
+This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${dayWithOrdinal}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentYear}</span>, by
  
 <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span> as lien claimant or
  
@@ -574,26 +618,53 @@ cc: General Contractor
             showPreview('lien');
         }
 
-        function downloadAllDocuments() {
-            // First generate preview if it hasn't been generated yet
+        function previewAllDocuments() {
+            // Generate preview if it hasn't been generated yet
             if (document.getElementById('previewLienDocument').innerHTML === '') {
                 generatePreview();
             }
             
-            // Create a promise-based version of PDF generation for sequential execution
-            const downloadLien = () => {
-                return new Promise((resolve) => {
-                    // Use the existing generatePDF function for the lien document
-                    generatePDF('lien');
-                    // Wait a bit for the first PDF to complete downloading
-                    setTimeout(resolve, 1500);
-                });
-            };
+            // Switch to preview tab
+            openTab(null, 'PreviewTab');
+            document.querySelector('.tablinks').classList.remove('active');
+            document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
+            document.querySelector('.tablinks:nth-child(3)').classList.add('active');
             
-            // Execute the downloads in sequence
-            downloadLien().then(() => {
-                generatePDF('letter');
-            });
+            // Open windows in new tabs for preview
+            const lienContent = document.getElementById('previewLienDocument').innerHTML;
+            const letterContent = document.getElementById('previewLetterDocument').innerHTML;
+            
+            // Preview lien document in a new tab
+            const lienTab = window.open('', '_blank');
+            lienTab.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Notice of Right to Lien Preview</title>
+                    <style>
+                        body { font-family: 'Times New Roman', Times, serif; padding: 20px; }
+                    </style>
+                </head>
+                <body>${lienContent}</body>
+                </html>
+            `);
+            lienTab.document.close();
+            
+            // Preview letter document in another new tab
+            const letterTab = window.open('', '_blank');
+            letterTab.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Notice Letter Preview</title>
+                    <style>
+                        body { font-family: 'Times New Roman', Times, serif; padding: 20px; }
+                    </style>
+                </head>
+                <body>${letterContent}</body>
+                </html>
+            `);
+            letterTab.document.close();
         }
         
         function generatePDF(type) {
