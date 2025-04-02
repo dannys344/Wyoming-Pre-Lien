@@ -547,24 +547,35 @@ cc: General Contractor
             // Create sanitized address for filename (remove special characters and spaces)
             const sanitizedAddress = propertyAddress.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
             const filename = type === 'lien' ? 
-                `Notice of Right to Lien - ${sanitizedAddress}.docx` : 
-                `Notice Letter - ${sanitizedAddress}.docx`;
+                `Notice of Right to Lien - ${sanitizedAddress}.html` : 
+                `Notice Letter - ${sanitizedAddress}.html`;
             
             // Get the content from the preview
             const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
             const previewElement = document.getElementById(previewElementId);
             
-            // Create a blob with HTML content for Word
+            // Create clean HTML content
             const htmlContent = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-                      xmlns:w='urn:schemas-microsoft-com:office:word'
-                      xmlns='http://www.w3.org/TR/REC-html40'>
+                <!DOCTYPE html>
+                <html>
                 <head>
                     <meta charset="utf-8">
                     <title>${filename}</title>
                     <style>
-                        body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; }
-                        .page-break { page-break-before: always; }
+                        body { 
+                            font-family: 'Times New Roman', Times, serif; 
+                            font-size: 12pt; 
+                            line-height: 1.5;
+                            padding: 20px;
+                        }
+                        .page-break { 
+                            page-break-before: always; 
+                        }
+                        @media print {
+                            .page-break {
+                                page-break-before: always;
+                            }
+                        }
                     </style>
                 </head>
                 <body>
@@ -574,13 +585,21 @@ cc: General Contractor
             `;
             
             // Create blob and download
-            const blob = new Blob([htmlContent], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+            const blob = new Blob([htmlContent], { type: 'text/html' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = filename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            // Show instructions to the user
+            alert("Download complete. Please open the HTML file in Microsoft Word to save as a Word document.\n\n"
+                + "Instructions:\n"
+                + "1. Open Microsoft Word\n"
+                + "2. Choose File > Open > Browse\n"
+                + "3. Find and select the downloaded HTML file\n"
+                + "4. When Word opens the file, save it as a Word Document (File > Save As > Word Document)");
         }
     </script>
 </body>
