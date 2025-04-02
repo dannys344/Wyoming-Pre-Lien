@@ -630,41 +630,8 @@ cc: General Contractor
             document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
             document.querySelector('.tablinks:nth-child(3)').classList.add('active');
             
-            // Open windows in new tabs for preview
-            const lienContent = document.getElementById('previewLienDocument').innerHTML;
-            const letterContent = document.getElementById('previewLetterDocument').innerHTML;
-            
-            // Preview lien document in a new tab
-            const lienTab = window.open('', '_blank');
-            lienTab.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Notice of Right to Lien Preview</title>
-                    <style>
-                        body { font-family: 'Times New Roman', Times, serif; padding: 20px; }
-                    </style>
-                </head>
-                <body>${lienContent}</body>
-                </html>
-            `);
-            lienTab.document.close();
-            
-            // Preview letter document in another new tab
-            const letterTab = window.open('', '_blank');
-            letterTab.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Notice Letter Preview</title>
-                    <style>
-                        body { font-family: 'Times New Roman', Times, serif; padding: 20px; }
-                    </style>
-                </head>
-                <body>${letterContent}</body>
-                </html>
-            `);
-            letterTab.document.close();
+            // Show the lien document by default
+            showPreview('lien');
         }
         
         function generatePDF(type) {
