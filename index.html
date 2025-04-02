@@ -128,6 +128,17 @@
             height: auto;
             margin-bottom: 10px;
         }
+        .page-break {
+            page-break-after: always;
+            margin-bottom: 30px;
+            border-bottom: 1px dashed #ccc;
+        }
+        .signature-text {
+            font-family: 'Brush Script MT', cursive;
+            font-size: 24px;
+            line-height: 1;
+            margin-bottom: 0;
+        }
     </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -331,11 +342,9 @@
             document.getElementById('letterPropertyAddress').value = propertyAddress;
         }
 
-        // Function to get the signature image - now using the file path instead of base64
-        function getSignatureImg() {
-            // Using an absolute path to ensure the image is found
-            // If in a subdirectory, you may need to adjust the path
-            return `<img src="/JaySignature.png" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: -15px;">`;
+        // Function to get the signature as styled text
+        function getSignatureHtml() {
+            return `<p class="signature-text">Jay L. Singleton</p>Jay L. Singleton, COO`;
         }
 
         function openTab(evt, tabName) {
@@ -405,15 +414,15 @@
             // Combine contractor info and address for the TO: field
             const fullContractorInfo = `${contractorInfo}\n${contractorAddress}`;
             
-            // Get the signature image from our function
-            const signatureImg = getSignatureImg();
+            // Get the signature HTML
+            const signatureHtml = getSignatureHtml();
 
-            // Generate Notice of Right to Lien document
-            const lienDocumentContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">** NOTICE TO OWNER**</div>
+            // Generate Notice of Right to Lien document with page break
+            const lienDocumentContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">NOTICE TO OWNER</div>
  
-The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property *can result* in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
+The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property can result in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
  
-**Name, address and telephone number of contractor, subcontractor or materialman, and contact person:**
+Name, address and telephone number of contractor, subcontractor or materialman, and contact person:
  View Point, Inc.
  6175 W. State Street
  Boise, ID 83714
@@ -421,24 +430,22 @@ The undersigned party is providing work or materials to the property described b
  Contact: Michele Clark
               (208) 854-1877
  
-**MATERIALS PROVIDED/WORK PERFORMED**:
+MATERIALS PROVIDED/WORK PERFORMED:
 BUILDING MATERIALS AND LABOR
  
-**PROPERTY DESCRIPTION**: ${legalDescription}
+PROPERTY DESCRIPTION: ${legalDescription}
  
-**ADDRESS**: ${propertyAddress}
+ADDRESS: ${propertyAddress}
  
-**PARCEL IDENTIFICATION:** ${parcelId}
-**SIGNED**:        
-                        ${signatureImg}
-                        Jay L. Singleton, COO
+PARCEL IDENTIFICATION: ${parcelId}
+SIGNED:        
+                        ${signatureHtml}
  
-** **
-** **
-** **
-**${currentDate}**
- 
-<div style="text-align: center; font-weight: bold; margin-bottom: 10px;">**LIEN WAIVER**</div>
+${currentDate}
+
+<div class="page-break"></div>
+<div style="text-align: center; font-weight: bold; margin-bottom: 10px;">${currentDate}</div>
+<div style="text-align: center; font-weight: bold; margin-bottom: 10px;">LIEN WAIVER</div>
  
 TO: ${fullContractorInfo}
  
@@ -452,8 +459,7 @@ PAYMENT: $<span style="border-bottom: 1px solid black; padding-bottom: 1px; disp
 In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
  
 By:
-${signatureImg}
-        Jay L. Singleton, COO
+${signatureHtml}
  
 STATE OF Wyoming 
 )
@@ -500,12 +506,12 @@ To Whom It May Concern:
 
 Thank you for choosing View Point. We appreciate your business and look forward to working with you!
 
-Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is **not** a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
+Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is not a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
 
 If there are questions or concerns, please contact Michele Clark: (208) 854-1877
 
 <div style="margin-top: 20px;">
-<img src="/JaySignature.png" alt="View Point Logo" class="logo-image">
+<p class="signature-text">Jay L. Singleton</p>
 </div>
 
 __________________
@@ -551,53 +557,92 @@ cc: General Contractor
             const filename = type === 'lien' ? 'notice-of-right-to-lien.pdf' : 'notice-letter.pdf';
             const previewElement = document.getElementById(previewElementId);
             
-            // Create a temporary div with proper styling for PDF generation
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = previewElement.innerHTML;
-            // Reducing width to ensure content fits within page boundaries
-            tempDiv.style.width = '170mm';
-            // Increased padding to create more margin space
-            tempDiv.style.padding = '20mm';
-            tempDiv.style.fontFamily = 'Times New Roman';
-            tempDiv.style.fontSize = '12pt';
-            tempDiv.style.lineHeight = '1.5';
-            tempDiv.style.whiteSpace = 'pre-wrap';
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '-9999px';
-            document.body.appendChild(tempDiv);
+            // Get all page elements
+            const pages = previewElement.querySelectorAll('.page-break');
+            
+            if (pages.length > 0 && type === 'lien') {
+                // For multi-page documents
+                let currentPage = previewElement.innerHTML.split('<div class="page-break"></div>');
+                
+                for (let i = 0; i < currentPage.length; i++) {
+                    // Create temporary div for each page
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = currentPage[i];
+                    tempDiv.style.width = '170mm';
+                    tempDiv.style.padding = '20mm';
+                    tempDiv.style.fontFamily = 'Times New Roman';
+                    tempDiv.style.fontSize = '12pt';
+                    tempDiv.style.lineHeight = '1.5';
+                    tempDiv.style.whiteSpace = 'pre-wrap';
+                    tempDiv.style.position = 'absolute';
+                    tempDiv.style.left = '-9999px';
+                    document.body.appendChild(tempDiv);
+                    
+                    html2canvas(tempDiv, {
+                        scale: 2,
+                        logging: false,
+                        scrollY: -window.scrollY,
+                        windowWidth: document.documentElement.offsetWidth,
+                        windowHeight: document.documentElement.offsetHeight
+                    }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                        const imgWidth = 190;
+                        const imgHeight = canvas.height * imgWidth / canvas.width;
+                        
+                        if (i > 0) {
+                            doc.addPage();
+                        }
+                        
+                        doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                        
+                        if (i === currentPage.length - 1) {
+                            doc.save(filename);
+                            document.body.removeChild(tempDiv);
+                        }
+                    });
+                }
+            } else {
+                // For single page documents
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = previewElement.innerHTML;
+                tempDiv.style.width = '170mm';
+                tempDiv.style.padding = '20mm';
+                tempDiv.style.fontFamily = 'Times New Roman';
+                tempDiv.style.fontSize = '12pt';
+                tempDiv.style.lineHeight = '1.5';
+                tempDiv.style.whiteSpace = 'pre-wrap';
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                document.body.appendChild(tempDiv);
 
-            html2canvas(tempDiv, {
-                scale: 2,
-                logging: false,
-                // Ensuring all content is captured
-                scrollY: -window.scrollY,
-                windowWidth: document.documentElement.offsetWidth,
-                windowHeight: document.documentElement.offsetHeight
-            }).then(canvas => {
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                // Reduced width to account for margins
-                const imgWidth = 190; // Slightly narrower than A4 width (210mm)
-                const pageHeight = 277; // Reduced from A4 height (297mm) to account for margins
-                const imgHeight = canvas.height * imgWidth / canvas.width;
-                let heightLeft = imgHeight;
-                // Starting position adjusted to provide top margin
-                let position = 0;
+                html2canvas(tempDiv, {
+                    scale: 2,
+                    logging: false,
+                    scrollY: -window.scrollY,
+                    windowWidth: document.documentElement.offsetWidth,
+                    windowHeight: document.documentElement.offsetHeight
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    const imgWidth = 190;
+                    const pageHeight = 277;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 0;
 
-                // Add image with margin offset
-                doc.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-
-                while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
-                    doc.addPage();
-                    // Add image with margin offset on subsequent pages too
                     doc.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight);
                     heightLeft -= pageHeight;
-                }
 
-                doc.save(filename);
-                document.body.removeChild(tempDiv);
-            });
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        doc.addPage();
+                        doc.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    doc.save(filename);
+                    document.body.removeChild(tempDiv);
+                });
+            }
         }
     </script>
 </body>
