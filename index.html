@@ -492,19 +492,18 @@ FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display:
  
 DATE: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${currentDate}</span>
  
-PAYMENT: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">$${totalContractCost}</span>
+PAYMENT: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">${totalContractCost}</span>
  
-In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">$${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">$${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
+In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
  
 By:
 ${signatureHtml}
 
 <div class="page-break"></div>
-STATE OF WYOMING 
+STATE OF WYOMING
 )
-)
-ss.
-COUNTY OF ${county.toUpperCase()} 
+)  ss.
+COUNTY OF ${county.toUpperCase()}
 )
 This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${dayOfMonth}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px;">${currentYear}</span>, by
  
@@ -582,13 +581,99 @@ cc: General Contractor
                 generatePreview();
             }
             
-            // Download lien document first
-            generatePDF('lien');
-            
-            // Set a timeout to download letter document after the first one completes
-            setTimeout(function() {
-                generatePDF('letter');
-            }, 1000);
+            // Use promises to chain the download operations
+            generatePDFPromise('lien').then(function() {
+                return generatePDFPromise('letter');
+            }).catch(function(error) {
+                console.error("Error downloading documents:", error);
+            });
+        }
+        
+        function generatePDFPromise(type) {
+            return new Promise(function(resolve, reject) {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'letter'
+                    });
+                    
+                    // Determine which preview element to use based on type
+                    const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
+                    const propertyAddress = document.getElementById('propertyAddress').value || 'unknown-address';
+                    const sanitizedAddress = propertyAddress.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
+                    const filename = type === 'lien' ? 
+                        `Notice of Right to Lien - ${sanitizedAddress}.pdf` : 
+                        `Notice Letter - ${sanitizedAddress}.pdf`;
+                    
+                    const previewElement = document.getElementById(previewElementId);
+                    
+                    if (type === 'lien') {
+                        // For multi-page lien document
+                        const pageContents = previewElement.innerHTML.split('<div class="page-break"></div>');
+                        let pageIndex = 0;
+                        
+                        function processNextPage() {
+                            if (pageIndex >= pageContents.length) {
+                                doc.save(filename);
+                                resolve();
+                                return;
+                            }
+                            
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = pageContents[pageIndex];
+                            tempDiv.style.width = '215.9mm'; // Letter width
+                            tempDiv.style.padding = '15mm';
+                            tempDiv.style.fontFamily = 'Times New Roman';
+                            tempDiv.style.fontSize = '12pt';
+                            tempDiv.style.lineHeight = '1.5';
+                            tempDiv.style.whiteSpace = 'pre-wrap';
+                            tempDiv.style.backgroundColor = 'white';
+                            document.body.appendChild(tempDiv);
+                            
+                            html2canvas(tempDiv, {
+                                scale: 2,
+                                backgroundColor: 'white',
+                                logging: false
+                            }).then(canvas => {
+                                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                                const imgWidth = 190; // Slightly narrower than page for margins
+                                const imgHeight = canvas.height * imgWidth / canvas.width;
+                                
+                                if (pageIndex > 0) {
+                                    doc.addPage();
+                                }
+                                
+                                doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                                document.body.removeChild(tempDiv);
+                                
+                                pageIndex++;
+                                processNextPage();
+                            });
+                        }
+                        
+                        processNextPage();
+                    } else {
+                        // For single page letter document
+                        html2canvas(previewElement, {
+                            scale: 2,
+                            backgroundColor: 'white',
+                            logging: false
+                        }).then(canvas => {
+                            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                            const imgWidth = 190;
+                            const imgHeight = canvas.height * imgWidth / canvas.width;
+                            
+                            doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                            doc.save(filename);
+                            resolve();
+                        }).catch(reject);
+                    }
+                } catch (error) {
+                    reject(error);
+                }
+            });
         }
         
         function generatePDF(type) {
