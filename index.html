@@ -419,7 +419,7 @@
             // Get the signature HTML
             const signatureHtml = getSignatureHtml();
 
-            // Generate Notice of Right to Lien document with page break
+            // Generate Notice of Right to Lien document with page breaks
             const lienDocumentContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">NOTICE TO OWNER</div>
  
 The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property can result in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
@@ -462,7 +462,8 @@ In consideration of the PAYMENT received to date, the undersigned does hereby wa
  
 By:
 ${signatureHtml}
- 
+
+<div class="page-break"></div>
 STATE OF Wyoming 
 )
 )
@@ -494,7 +495,7 @@ Seal:
 
             // Generate Notice Letter document
             const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.5; padding-top: 0;">
-<div style="text-align: center; margin-top: -10px; margin-bottom: 30px;">
+<div style="text-align: center; margin-top: -20px; margin-bottom: 30px;">
 <img src="Viewpoint Logo.jpg" alt="View Point Logo" style="max-width: 200px; margin-bottom: 5px;"><br>
 <span style="font-weight: bold;">View Point, Inc.</span>
 6715 W. State Street • Boise, ID. 83714
@@ -564,7 +565,14 @@ cc: General Contractor
 
             // Determine which preview element to use based on type
             const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
-            const filename = type === 'lien' ? 'notice-of-right-to-lien.pdf' : 'notice-letter.pdf';
+            // Include property address in filename
+            const propertyAddress = document.getElementById('propertyAddress').value || 'unknown-address';
+            // Create sanitized address for filename (remove special characters and spaces)
+            const sanitizedAddress = propertyAddress.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
+            const filename = type === 'lien' ? 
+                `Notice of Right to Lien - ${sanitizedAddress}.pdf` : 
+                `Notice Letter - ${sanitizedAddress}.pdf`;
+            
             const previewElement = document.getElementById(previewElementId);
             
             // Get all page elements
