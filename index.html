@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Point Document Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Replace jsPDF with docx.js for Word document generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -308,8 +309,8 @@
             
             <div class="buttons">
                 <button onclick="goBackToForm()">Edit Form</button>
-                <button onclick="generatePDF('lien')">Download Notice of Right to Lien PDF</button>
-                <button onclick="generatePDF('letter')">Download Notice Letter PDF</button>
+                <button onclick="generateWordDoc('lien')">Download Notice of Right to Lien Word Doc</button>
+                <button onclick="generateWordDoc('letter')">Download Notice Letter Word Doc</button>
             </div>
         </div>
     </div>
@@ -540,120 +541,357 @@ cc: General Contractor
             showPreview('lien');
         }
 
-        function generatePDF(type) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'letter',
-                // Adding margins to avoid content getting cut off
-                margins: {
-                    top: 20,
-                    bottom: 20,
-                    left: 20,
-                    right: 20
-                }
-            });
-
-            // Determine which preview element to use based on type
-            const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
-            // Include property address in filename
+        // Function to generate Word documents (DOCX) using docx.js
+        function generateWordDoc(type) {
+            // Determine document content based on type
+            let docContent = [];
+            let filename = '';
             const propertyAddress = document.getElementById('propertyAddress').value || 'unknown-address';
-            // Create sanitized address for filename (remove special characters and spaces)
             const sanitizedAddress = propertyAddress.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
-            const filename = type === 'lien' ? 
-                `Notice of Right to Lien - ${sanitizedAddress}.pdf` : 
-                `Notice Letter - ${sanitizedAddress}.pdf`;
             
-            const previewElement = document.getElementById(previewElementId);
+            // Get all the form field values again to ensure we're using the latest data
+            const projectNameInput = document.getElementById('projectName').value;
+            const projectName = projectNameInput || propertyAddress;
+            const county = document.getElementById('county').value || '[County Not Provided]';
+            const parcelId = document.getElementById('parcelId').value || '[Parcel ID Not Provided]';
+            const legalDescription = document.getElementById('legalDescription').value || '[Legal Description Not Provided]';
+            const contractorInfo = document.getElementById('contractorInfo').value || '[Contractor Information Not Provided]';
+            const contractorAddress = document.getElementById('contractorAddress').value || '[Contractor Address Not Provided]';
+            const totalContractCost = document.getElementById('totalContractCost').value || '[Amount Not Provided]';
+            const currentDate = formatDate(document.getElementById('currentDate').value);
+            const dayOfMonth = document.getElementById('dayOfMonth').value || '[Day Not Provided]';
+            const currentMonth = document.getElementById('currentMonth').value;
+            const currentYear = document.getElementById('currentYear').value || '[Year Not Provided]';
+            const fullContractorInfo = `${contractorInfo}\n${contractorAddress}`;
             
-            // Get all page elements
-            const pages = previewElement.querySelectorAll('.page-break');
-            
-            if (pages.length > 0 && type === 'lien') {
-                // For multi-page documents
-                let currentPage = previewElement.innerHTML.split('<div class="page-break"></div>');
+            if (type === 'lien') {
+                filename = `Notice of Right to Lien - ${sanitizedAddress}.docx`;
                 
-                for (let i = 0; i < currentPage.length; i++) {
-                    // Create temporary div for each page
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = currentPage[i];
-                    tempDiv.style.width = '170mm';
-                    tempDiv.style.padding = '20mm';
-                    tempDiv.style.fontFamily = 'Times New Roman';
-                    tempDiv.style.fontSize = '12pt';
-                    tempDiv.style.lineHeight = '1.5';
-                    tempDiv.style.whiteSpace = 'pre-wrap';
-                    tempDiv.style.position = 'absolute';
-                    tempDiv.style.left = '-9999px';
-                    document.body.appendChild(tempDiv);
-                    
-                    html2canvas(tempDiv, {
-                        scale: 2,
-                        logging: false,
-                        scrollY: -window.scrollY,
-                        windowWidth: document.documentElement.offsetWidth,
-                        windowHeight: document.documentElement.offsetHeight
-                    }).then(canvas => {
-                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                        const imgWidth = 190;
-                        const imgHeight = canvas.height * imgWidth / canvas.width;
-                        
-                        if (i > 0) {
-                            doc.addPage();
-                        }
-                        
-                        doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
-                        
-                        if (i === currentPage.length - 1) {
-                            doc.save(filename);
-                            document.body.removeChild(tempDiv);
-                        }
-                    });
-                }
-            } else {
-                // For single page documents
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = previewElement.innerHTML;
-                tempDiv.style.width = '170mm';
-                tempDiv.style.padding = '20mm';
-                tempDiv.style.fontFamily = 'Times New Roman';
-                tempDiv.style.fontSize = '12pt';
-                tempDiv.style.lineHeight = '1.5';
-                tempDiv.style.whiteSpace = 'pre-wrap';
-                tempDiv.style.position = 'absolute';
-                tempDiv.style.left = '-9999px';
-                document.body.appendChild(tempDiv);
+                // Create Notice of Right to Lien document
+                const { Document, Paragraph, TextRun, AlignmentType, HeadingLevel, PageBreak } = docx;
+                
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({
+                                text: currentDate,
+                            }),
+                            // Page break for new page
+                            new Paragraph({
+                                children: [
+                                    new PageBreak()
+                                ],
+                            }),
+                            // Page 2 - Lien Waiver
+                            new Paragraph({
+                                text: currentDate,
+                                alignment: AlignmentType.LEFT,
+                            }),
+                            new Paragraph({
+                                text: "LIEN WAIVER",
+                                heading: HeadingLevel.HEADING_1,
+                                alignment: AlignmentType.CENTER,
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "TO: " + fullContractorInfo,
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "PROJECT: " + projectName,
+                            }),
+                            new Paragraph({
+                                text: "FROM: VIEW POINT, INC.",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "DATE: " + currentDate,
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "PAYMENT: $" + totalContractCost,
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of $" + totalContractCost + ", and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of $" + totalContractCost + " for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "By:",
+                            }),
+                            new Paragraph({
+                                text: "Jay L. Singleton, COO", // Placeholder for signature
+                            }),
+                            // Page break for new page
+                            new Paragraph({
+                                children: [
+                                    new PageBreak()
+                                ],
+                            }),
+                            // Page 3 - Notary page
+                            new Paragraph({
+                                text: "STATE OF Wyoming",
+                            }),
+                            new Paragraph({
+                                text: ")",
+                            }),
+                            new Paragraph({
+                                text: ")",
+                                alignment: AlignmentType.CENTER,
+                            }),
+                            new Paragraph({
+                                text: "ss.",
+                                alignment: AlignmentType.CENTER,
+                            }),
+                            new Paragraph({
+                                text: "COUNTY OF " + county,
+                            }),
+                            new Paragraph({
+                                text: ")",
+                            }),
+                            new Paragraph({
+                                text: "This instrument was acknowledged before me on this " + dayOfMonth + " day of " + currentMonth + ", " + currentYear + ", by",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "________________________________ as lien claimant or",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "________________________________ of",
+                            }),
+                            new Paragraph({
+                                text: "________________________________",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "(lien claimant).",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "IN WITNESS THEREOF, I have hereunto set my hand and affixed my official seal on the day and year last above written.",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "______________________________",
+                            }),
+                            new Paragraph({
+                                text: "Notarial officer",
+                            }),
+                            new Paragraph({
+                                text: "My Commission Expires:",
+                            }),
+                            new Paragraph({
+                                text: "Seal:",
+                            }),
+                        ],
+                    }],
+                });
+                
+                // Generate the Word document and save it
+                docx.Packer.toBlob(doc).then(blob => {
+                    saveAs(blob, filename);
+                });
 
-                html2canvas(tempDiv, {
-                    scale: 2,
-                    logging: false,
-                    scrollY: -window.scrollY,
-                    windowWidth: document.documentElement.offsetWidth,
-                    windowHeight: document.documentElement.offsetHeight
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                    const imgWidth = 190;
-                    const pageHeight = 277;
-                    const imgHeight = canvas.height * imgWidth / canvas.width;
-                    let heightLeft = imgHeight;
-                    let position = 0;
+            } else if (type === 'letter') {
+                // Gather letter-specific values
+                const letterDate = document.getElementById('letterDate').value;
+                const certifiedMailNumber = document.getElementById('certifiedMailNumber').value || '[Certified Mail Number Not Provided]';
+                const customerName = document.getElementById('customerName').value || '[Customer Name Not Provided]';
+                const letterPropertyAddress = document.getElementById('letterPropertyAddress').value || '[Property Address Not Provided]';
 
-                    doc.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
-
-                    while (heightLeft >= 0) {
-                        position = heightLeft - imgHeight;
-                        doc.addPage();
-                        doc.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight);
-                        heightLeft -= pageHeight;
-                    }
-
-                    doc.save(filename);
-                    document.body.removeChild(tempDiv);
+                filename = `Notice Letter - ${sanitizedAddress}.docx`;
+                
+                // Create Notice Letter document
+                const { Document, Paragraph, TextRun, AlignmentType, HeadingLevel } = docx;
+                
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({
+                                text: "View Point, Inc.",
+                                alignment: AlignmentType.CENTER,
+                            }),
+                            new Paragraph({
+                                text: "6715 W. State Street • Boise, ID. 83714",
+                                alignment: AlignmentType.CENTER,
+                            }),
+                            new Paragraph({
+                                text: "Telephone (208) 854-1877 • Fax (208) 854-1878",
+                                alignment: AlignmentType.CENTER,
+                            }),
+                            new Paragraph({
+                                text: "www.viewpointwindows.com",
+                                alignment: AlignmentType.CENTER,
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: letterDate,
+                            }),
+                            new Paragraph({
+                                text: "VIA CERTIFIED MAIL",
+                            }),
+                            new Paragraph({
+                                text: "# " + certifiedMailNumber,
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "Name: " + customerName,
+                            }),
+                            new Paragraph({
+                                text: "Address: " + letterPropertyAddress,
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "To Whom It May Concern:",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "Thank you for choosing View Point. We appreciate your business and look forward to working with you!",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is not a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "If there are questions or concerns, please contact Michele Clark: (208) 854-1877",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "Jay L. Singleton", // Placeholder for signature
+                            }),
+                            new Paragraph({
+                                text: "View Point, COO",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "JLS/mc",
+                            }),
+                            new Paragraph({
+                                text: "cc: General Contractor",
+                            }),
+                        ],
+                    }],
+                });
+                
+                // Generate the Word document and save it
+                docx.Packer.toBlob(doc).then(blob => {
+                    saveAs(blob, filename);
                 });
             }
         }
     </script>
 </body>
-</html>
+</html> Paragraph({
+                                text: "NOTICE TO OWNER",
+                                heading: HeadingLevel.HEADING_1,
+                                alignment: AlignmentType.CENTER,
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property can result in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "Name, address and telephone number of contractor, subcontractor or materialman, and contact person:",
+                            }),
+                            new Paragraph({
+                                text: "View Point, Inc.",
+                            }),
+                            new Paragraph({
+                                text: "6175 W. State Street",
+                            }),
+                            new Paragraph({
+                                text: "Boise, ID 83714",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "Contact: Michele Clark",
+                            }),
+                            new Paragraph({
+                                text: "(208) 854-1877",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "MATERIALS PROVIDED/WORK PERFORMED:",
+                            }),
+                            new Paragraph({
+                                text: "BUILDING MATERIALS AND LABOR",
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "PROPERTY DESCRIPTION: " + legalDescription,
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "ADDRESS: " + propertyAddress,
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new Paragraph({
+                                text: "PARCEL IDENTIFICATION: " + parcelId,
+                            }),
+                            new Paragraph({
+                                text: "SIGNED:",
+                            }),
+                            new Paragraph({
+                                text: "Jay L. Singleton, COO", // Placeholder for signature
+                            }),
+                            new Paragraph({
+                                text: "",
+                            }),
+                            new
