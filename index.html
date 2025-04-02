@@ -1,24 +1,4 @@
-function downloadAllDocuments() {
-            // First generate preview if it hasn't been generated yet
-            if (document.getElementById('previewLienDocument').innerHTML === '') {
-                generatePreview();
-            }
-            
-            // Create a promise-based version of PDF generation for sequential execution
-            const downloadLien = () => {
-                return new Promise((resolve) => {
-                    // Use the existing generatePDF function for the lien document
-                    generatePDF('lien');
-                    // Wait a bit for the first PDF to complete downloading
-                    setTimeout(resolve, 1500);
-                });
-            };
-            
-            // Execute the downloads in sequence
-            downloadLien().then(() => {
-                generatePDF('letter');
-            });
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -367,6 +347,18 @@ function downloadAllDocuments() {
             document.getElementById('letterDate').value = realToday.toLocaleDateString('en-US', options);
         };
 
+        // Function to get appropriate ordinal suffix for a day number
+        function getOrdinalSuffix(day) {
+            const num = parseInt(day, 10);
+            if (num > 3 && num < 21) return 'th'; // 4th through 20th
+            switch (num % 10) {
+                case 1: return 'st';
+                case 2: return 'nd';
+                case 3: return 'rd';
+                default: return 'th';
+            }
+        }
+
         // Function to clear all fields
         function clearAllFields() {
             // Clear Notice of Right to Lien form
@@ -441,28 +433,6 @@ function downloadAllDocuments() {
             document.querySelector('.tablinks:nth-child(3)').classList.remove('active');
         }
 
-        // Function to get day with ordinal suffix (1st, 2nd, 3rd, etc.)
-        function getDayWithOrdinal(day) {
-            if (!day) return '';
-            
-            const num = parseInt(day, 10);
-            if (isNaN(num)) return day;
-            
-            const j = num % 10;
-            const k = num % 100;
-            
-            if (j === 1 && k !== 11) {
-                return num + "st";
-            }
-            if (j === 2 && k !== 12) {
-                return num + "nd";
-            }
-            if (j === 3 && k !== 13) {
-                return num + "rd";
-            }
-            return num + "th";
-        }
-
         function formatDate(dateString) {
             // Always use the current date instead of the one from the input
             const date = new Date();
@@ -487,8 +457,9 @@ function downloadAllDocuments() {
             
             // Date values
             const currentDate = formatDate(document.getElementById('currentDate').value);
-            const dayValue = document.getElementById('dayOfMonth').value || new Date().getDate();
-            const dayWithOrdinal = getDayWithOrdinal(dayValue);
+            const dayOfMonth = document.getElementById('dayOfMonth').value || '[Day Not Provided]';
+            // Add ordinal suffix to day
+            const dayWithSuffix = dayOfMonth + getOrdinalSuffix(parseInt(dayOfMonth));
             const currentMonth = document.getElementById('currentMonth').value;
             const currentYear = document.getElementById('currentYear').value || '[Year Not Provided]';
 
@@ -547,7 +518,7 @@ STATE OF WYOMING                                               )
                                                                       )  ss.
 COUNTY OF _______________                                     )
 
-This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${dayWithOrdinal}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentYear}</span>, by
+This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${dayWithSuffix}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentYear}</span>, by
  
 <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span> as lien claimant or
  
@@ -617,20 +588,26 @@ cc: General Contractor
             showPreview('lien');
         }
 
-        function previewAllDocuments() {
-            // Generate preview if it hasn't been generated yet
+        function downloadAllDocuments() {
+            // First generate preview if it hasn't been generated yet
             if (document.getElementById('previewLienDocument').innerHTML === '') {
                 generatePreview();
             }
             
-            // Switch to preview tab
-            openTab(null, 'PreviewTab');
-            document.querySelector('.tablinks').classList.remove('active');
-            document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
-            document.querySelector('.tablinks:nth-child(3)').classList.add('active');
+            // Create a promise-based version of PDF generation for sequential execution
+            const downloadLien = () => {
+                return new Promise((resolve) => {
+                    // Use the existing generatePDF function for the lien document
+                    generatePDF('lien');
+                    // Wait a bit for the first PDF to complete downloading
+                    setTimeout(resolve, 1500);
+                });
+            };
             
-            // Show the lien document by default
-            showPreview('lien');
+            // Execute the downloads in sequence
+            downloadLien().then(() => {
+                generatePDF('letter');
+            });
         }
         
         function generatePDF(type) {
