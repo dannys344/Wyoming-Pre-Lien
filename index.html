@@ -140,16 +140,13 @@
             line-height: 1;
             margin-bottom: 0;
         }
-        /* Clear Form Button in top right */
         .clear-button {
             position: absolute;
-            top: 10px;
+            top: 20px;
             right: 20px;
             background-color: #f44336;
             color: white;
-        }
-        .clear-button:hover {
-            background-color: #d32f2f;
+            padding: 8px 15px;
         }
     </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
@@ -159,14 +156,12 @@
 <body>
     <div class="container">
         <h1>View Point Document Generator</h1>
-        
-        <!-- Clear Form Button -->
-        <button type="button" class="clear-button" onclick="clearForm()">Clear All Fields</button>
+        <button class="clear-button" onclick="clearAllFields()">Clear All Fields</button>
 
         <div class="tab">
-            <button type="button" class="tablinks active" onclick="openTab(event, 'NoticeRightToLienTab')">Notice of Right to Lien</button>
-            <button type="button" class="tablinks" onclick="openTab(event, 'NoticeLetterTab')">Notice Letter</button>
-            <button type="button" class="tablinks" onclick="openTab(event, 'PreviewTab')">Preview</button>
+            <button class="tablinks active" onclick="openTab(event, 'NoticeRightToLienTab')">Notice of Right to Lien</button>
+            <button class="tablinks" onclick="openTab(event, 'NoticeLetterTab')">Notice Letter</button>
+            <button class="tablinks" onclick="openTab(event, 'PreviewTab')">Preview</button>
         </div>
 
         <div id="NoticeRightToLienTab" class="tabcontent" style="display: block;">
@@ -278,7 +273,7 @@
             </div>
 
             <div class="buttons">
-                <button type="button" onclick="generatePreview()">Preview Documents</button>
+                <button onclick="generatePreview()">Preview Documents</button>
             </div>
         </div>
 
@@ -308,23 +303,23 @@
             </div>
 
             <div class="buttons">
-                <button type="button" onclick="generatePreview()">Preview Documents</button>
+                <button onclick="generatePreview()">Preview Documents</button>
             </div>
         </div>
 
         <div id="PreviewTab" class="tabcontent">
             <div class="preview-controls">
-                <button type="button" id="previewLienBtn" onclick="showPreview('lien')" class="active">Notice of Right to Lien</button>
-                <button type="button" id="previewLetterBtn" onclick="showPreview('letter')">Notice Letter</button>
+                <button id="previewLienBtn" onclick="showPreview('lien')" class="active">Notice of Right to Lien</button>
+                <button id="previewLetterBtn" onclick="showPreview('letter')">Notice Letter</button>
             </div>
             
             <div id="previewLienDocument" class="preview-document"></div>
             <div id="previewLetterDocument" class="preview-document" style="display: none;"></div>
             
             <div class="buttons">
-                <button type="button" onclick="goBackToForm()">Edit Form</button>
-                <button type="button" onclick="generatePDF('lien')">Download Notice of Right to Lien PDF</button>
-                <button type="button" onclick="generatePDF('letter')">Download Notice Letter PDF</button>
+                <button onclick="goBackToForm()">Edit Form</button>
+                <button onclick="generatePDF('lien')">Download Notice of Right to Lien PDF</button>
+                <button onclick="generatePDF('letter')">Download Notice Letter PDF</button>
             </div>
         </div>
     </div>
@@ -352,37 +347,27 @@
             document.getElementById('letterDate').value = realToday.toLocaleDateString('en-US', options);
         };
 
-        // Function to clear all form fields
-        function clearForm() {
-            // Clear all input fields in the Notice of Right to Lien tab
+        // Function to clear all fields
+        function clearAllFields() {
+            // Clear Notice of Right to Lien form
             document.getElementById('propertyAddress').value = '';
             document.getElementById('projectName').value = '';
             document.getElementById('county').value = '';
-            $('.county-select').val('').trigger('change'); // Clear Select2 dropdown
+            $('.county-select').val(null).trigger('change');
             document.getElementById('parcelId').value = '';
             document.getElementById('legalDescription').value = '';
             document.getElementById('contractorInfo').value = '';
             document.getElementById('contractorAddress').value = '';
             document.getElementById('totalContractCost').value = '';
             
-            // Clear fields in the Notice Letter tab
+            // Clear Notice Letter form
             document.getElementById('certifiedMailNumber').value = '';
             document.getElementById('customerName').value = '';
             document.getElementById('letterPropertyAddress').value = '';
             
-            // Reset date fields to current date
-            const today = new Date();
-            document.getElementById('currentDate').valueAsDate = today;
-            document.getElementById('dayOfMonth').value = today.getDate();
-            document.getElementById('currentMonth').selectedIndex = today.getMonth();
-            document.getElementById('currentYear').value = today.getFullYear();
-            
-            // Format and set the current date for the Notice Letter
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('letterDate').value = today.toLocaleDateString('en-US', options);
-            
-            // Show confirmation to user
-            alert('All form fields have been cleared.');
+            // Reset preview
+            document.getElementById('previewLienDocument').innerHTML = '';
+            document.getElementById('previewLetterDocument').innerHTML = '';
         }
 
         // Function to update Notice Letter address when Notice of Right to Lien address changes
@@ -397,9 +382,6 @@
         }
 
         function openTab(evt, tabName) {
-            // Store the event object if not provided (for cases when called programmatically)
-            const event = evt || window.event;
-            
             var i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tabcontent");
             for (i = 0; i < tabcontent.length; i++) {
@@ -410,11 +392,7 @@
                 tablinks[i].className = tablinks[i].className.replace(" active", "");
             }
             document.getElementById(tabName).style.display = "block";
-            
-            // Only add active class if evt is provided
-            if (event && event.currentTarget) {
-                event.currentTarget.className += " active";
-            }
+            evt.currentTarget.className += " active";
         }
 
         function showPreview(type) {
@@ -434,11 +412,8 @@
         }
 
         function goBackToForm() {
-            // Open the first tab
-            openTab(null, 'NoticeRightToLienTab');
-            
-            // Update the active classes manually
-            document.querySelector('.tablinks:nth-child(1)').classList.add('active');
+            openTab(event, 'NoticeRightToLienTab');
+            document.querySelector('.tablinks').classList.add('active');
             document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
             document.querySelector('.tablinks:nth-child(3)').classList.remove('active');
         }
@@ -514,9 +489,9 @@ FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display:
  
 DATE: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${currentDate}</span>
  
-PAYMENT: $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">${totalContractCost}</span>
+PAYMENT: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">$${totalContractCost}</span>
  
-In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">$${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of $<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">$${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
+In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">$${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px;">$${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
  
 By:
 ${signatureHtml}
@@ -571,7 +546,7 @@ To Whom It May Concern:
 
 Thank you for choosing View Point. We appreciate your business and look forward to working with you!
 
-Because View Point is providing work and/or materials to your property, we are required by the State of WYOMING to provide you with the enclosed document and form Lien Waiver. This is not a Notice of Lien; our intention is to inform the property owner of The State of WYOMING's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
+Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is not a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
 
 If there are questions or concerns, please contact Michele Clark: (208) 854-1877
 
@@ -657,11 +632,6 @@ cc: General Contractor
                         pageIndex++;
                         processNextPage();
                     });
-            }
-        }
-    </script>
-</body>
-</html>
                 }
                 
                 processNextPage();
@@ -679,3 +649,4 @@ cc: General Contractor
                     doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
                     doc.save(filename);
                 });
+            }
