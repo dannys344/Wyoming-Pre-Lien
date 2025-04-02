@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Point Document Generator</title>
-    <!-- Removed jsPDF and html2canvas -->
+    <!-- Add docx.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.js"></script>
+    <!-- Reintroducing jsPDF for PDF fallback option -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -546,60 +550,143 @@ cc: General Contractor
             const propertyAddress = document.getElementById('propertyAddress').value || 'unknown-address';
             // Create sanitized address for filename (remove special characters and spaces)
             const sanitizedAddress = propertyAddress.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
-            const filename = type === 'lien' ? 
-                `Notice of Right to Lien - ${sanitizedAddress}.html` : 
-                `Notice Letter - ${sanitizedAddress}.html`;
             
+            // Determine if we're generating the lien notice or letter
+            const isLien = type === 'lien';
+            const filename = isLien ? 
+                `Notice of Right to Lien - ${sanitizedAddress}.docx` : 
+                `Notice Letter - ${sanitizedAddress}.docx`;
+                
             // Get the content from the preview
-            const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
+            const previewElementId = isLien ? 'previewLienDocument' : 'previewLetterDocument';
             const previewElement = document.getElementById(previewElementId);
             
-            // Create clean HTML content
-            const htmlContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="utf-8">
-                    <title>${filename}</title>
-                    <style>
-                        body { 
-                            font-family: 'Times New Roman', Times, serif; 
-                            font-size: 12pt; 
-                            line-height: 1.5;
-                            padding: 20px;
-                        }
-                        .page-break { 
-                            page-break-before: always; 
-                        }
-                        @media print {
-                            .page-break {
-                                page-break-before: always;
+            try {
+                // Using docx.js to create a proper Word document
+                const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak } = docx;
+                
+                // Create a new document
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: []
+                    }]
+                });
+                
+                // Function to add text content from HTML to Word document
+                function addContentToDoc(element, doc) {
+                    // Get all text nodes and elements
+                    const children = Array.from(element.childNodes);
+                    
+                    children.forEach(child => {
+                        if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
+                            // Add text content
+                            doc.addParagraph(new Paragraph({
+                                children: [new TextRun(child.textContent.trim())],
+                                spacing: { line: 276 } // Approximately 1.15 line spacing
+                            }));
+                        } else if (child.nodeType === Node.ELEMENT_NODE) {
+                            // Handle different element types
+                            if (child.classList && child.classList.contains('page-break')) {
+                                doc.addParagraph(new Paragraph({
+                                    children: [new TextRun("").break()],
+                                    pageBreakBefore: true
+                                }));
+                            } else if (child.tagName === 'DIV' || child.tagName === 'P') {
+                                // Process div and paragraph content
+                                const textContent = child.textContent.trim();
+                                if (textContent) {
+                                    const alignment = child.style.textAlign === 'center' ? 
+                                        AlignmentType.CENTER : child.style.textAlign === 'right' ? 
+                                        AlignmentType.RIGHT : AlignmentType.LEFT;
+                                    
+                                    const isBold = child.style.fontWeight === 'bold' || 
+                                                  (child.tagName === 'DIV' && child.innerHTML.includes('bold'));
+                                    
+                                    doc.addParagraph(new Paragraph({
+                                        children: [new TextRun({
+                                            text: textContent,
+                                            bold: isBold
+                                        })],
+                                        alignment: alignment,
+                                        spacing: { line: 276 }
+                                    }));
+                                }
+                                
+                                // Process any child elements recursively
+                                if (child.hasChildNodes()) {
+                                    addContentToDoc(child, doc);
+                                }
+                            } else if (child.tagName === 'IMG') {
+                                // Note: Image embedding is complex in docx.js
+                                // For now, we'll add a placeholder
+                                doc.addParagraph(new Paragraph({
+                                    children: [new TextRun("[IMAGE: " + (child.alt || "Signature") + "]")],
+                                    spacing: { line: 276 }
+                                }));
                             }
                         }
-                    </style>
-                </head>
-                <body>
-                    ${previewElement.innerHTML}
-                </body>
-                </html>
-            `;
-            
-            // Create blob and download
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Show instructions to the user
-            alert("Download complete. Please open the HTML file in Microsoft Word to save as a Word document.\n\n"
-                + "Instructions:\n"
-                + "1. Open Microsoft Word\n"
-                + "2. Choose File > Open > Browse\n"
-                + "3. Find and select the downloaded HTML file\n"
-                + "4. When Word opens the file, save it as a Word Document (File > Save As > Word Document)");
+                    });
+                }
+                
+                // Add content to document
+                addContentToDoc(previewElement, doc);
+                
+                // Generate Word document
+                docx.Packer.toBlob(doc).then(blob => {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            } catch (error) {
+                console.error("Error generating Word document:", error);
+                
+                // Fallback to PDF if Word generation fails
+                alert("There was an issue creating a Word document. Generating a PDF instead.");
+                
+                const { jsPDF } = window.jspdf;
+                const pdfDoc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'letter',
+                    margins: { top: 20, bottom: 20, left: 20, right: 20 }
+                });
+                
+                const pdfFilename = isLien ? 
+                    `Notice of Right to Lien - ${sanitizedAddress}.pdf` : 
+                    `Notice Letter - ${sanitizedAddress}.pdf`;
+                
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = previewElement.innerHTML;
+                tempDiv.style.width = '170mm';
+                tempDiv.style.padding = '20mm';
+                tempDiv.style.fontFamily = 'Times New Roman';
+                tempDiv.style.fontSize = '12pt';
+                tempDiv.style.lineHeight = '1.5';
+                tempDiv.style.whiteSpace = 'pre-wrap';
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                document.body.appendChild(tempDiv);
+                
+                html2canvas(tempDiv, {
+                    scale: 2,
+                    logging: false,
+                    windowWidth: document.documentElement.offsetWidth,
+                    windowHeight: document.documentElement.offsetHeight
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    const imgWidth = 190;
+                    const pageHeight = 277;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    
+                    pdfDoc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                    pdfDoc.save(pdfFilename);
+                    document.body.removeChild(tempDiv);
+                });
+            }
         }
     </script>
 </body>
