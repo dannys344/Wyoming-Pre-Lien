@@ -146,7 +146,6 @@
             right: 20px;
             background-color: #f44336;
             color: white;
-            padding: 8px 15px;
         }
     </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
@@ -156,7 +155,7 @@
 <body>
     <div class="container">
         <h1>View Point Document Generator</h1>
-        <button class="clear-button" onclick="clearAllFields()">Clear All Fields</button>
+        <button type="button" class="clear-button" onclick="clearAllFields()">Clear All Fields</button>
 
         <div class="tab">
             <button class="tablinks active" onclick="openTab(event, 'NoticeRightToLienTab')">Notice of Right to Lien</button>
@@ -273,7 +272,7 @@
             </div>
 
             <div class="buttons">
-                <button onclick="generatePreview()">Preview Documents</button>
+                <button type="button" onclick="generatePreview()">Preview Documents</button>
             </div>
         </div>
 
@@ -303,23 +302,23 @@
             </div>
 
             <div class="buttons">
-                <button onclick="generatePreview()">Preview Documents</button>
+                <button type="button" onclick="generatePreview()">Preview Documents</button>
             </div>
         </div>
 
         <div id="PreviewTab" class="tabcontent">
             <div class="preview-controls">
-                <button id="previewLienBtn" onclick="showPreview('lien')" class="active">Notice of Right to Lien</button>
-                <button id="previewLetterBtn" onclick="showPreview('letter')">Notice Letter</button>
+                <button id="previewLienBtn" type="button" onclick="showPreview('lien')" class="active">Notice of Right to Lien</button>
+                <button id="previewLetterBtn" type="button" onclick="showPreview('letter')">Notice Letter</button>
             </div>
             
             <div id="previewLienDocument" class="preview-document"></div>
             <div id="previewLetterDocument" class="preview-document" style="display: none;"></div>
             
             <div class="buttons">
-                <button onclick="goBackToForm()">Edit Form</button>
-                <button onclick="generatePDF('lien')">Download Notice of Right to Lien PDF</button>
-                <button onclick="generatePDF('letter')">Download Notice Letter PDF</button>
+                <button type="button" onclick="goBackToForm()">Edit Form</button>
+                <button type="button" onclick="generatePDF('lien')">Download Notice of Right to Lien PDF</button>
+                <button type="button" onclick="generatePDF('letter')">Download Notice Letter PDF</button>
             </div>
         </div>
     </div>
@@ -352,13 +351,14 @@
             // Clear Notice of Right to Lien form
             document.getElementById('propertyAddress').value = '';
             document.getElementById('projectName').value = '';
-            document.getElementById('county').value = '';
-            $('.county-select').val(null).trigger('change');
             document.getElementById('parcelId').value = '';
             document.getElementById('legalDescription').value = '';
             document.getElementById('contractorInfo').value = '';
             document.getElementById('contractorAddress').value = '';
             document.getElementById('totalContractCost').value = '';
+            
+            // Reset Select2 dropdown
+            $('#county').val(null).trigger('change');
             
             // Clear Notice Letter form
             document.getElementById('certifiedMailNumber').value = '';
@@ -392,7 +392,9 @@
                 tablinks[i].className = tablinks[i].className.replace(" active", "");
             }
             document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.className += " active";
+            }
         }
 
         function showPreview(type) {
@@ -412,7 +414,7 @@
         }
 
         function goBackToForm() {
-            openTab(event, 'NoticeRightToLienTab');
+            openTab(null, 'NoticeRightToLienTab');
             document.querySelector('.tablinks').classList.add('active');
             document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
             document.querySelector('.tablinks:nth-child(3)').classList.remove('active');
@@ -564,7 +566,7 @@ cc: General Contractor
             document.getElementById('previewLetterDocument').innerHTML = letterDocumentContent;
             
             // Switch to preview tab
-            openTab(event, 'PreviewTab');
+            openTab(null, 'PreviewTab');
             document.querySelector('.tablinks').classList.remove('active');
             document.querySelector('.tablinks:nth-child(2)').classList.remove('active');
             document.querySelector('.tablinks:nth-child(3)').classList.add('active');
@@ -650,3 +652,7 @@ cc: General Contractor
                     doc.save(filename);
                 });
             }
+        }
+    </script>
+</body>
+</html>
