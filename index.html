@@ -494,21 +494,20 @@ Seal:
             const letterPropertyAddress = document.getElementById('letterPropertyAddress').value || '[Property Address Not Provided]';
 
             // Generate Notice Letter document
-            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.5; padding-top: 0;">
-<div style="text-align: center; margin-top: -20px; margin-bottom: 30px;">
-<img src="Viewpoint Logo.jpg" alt="View Point Logo" style="max-width: 200px; margin-bottom: 5px;"><br>
+            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.4; padding-top: 0;">
+<div style="text-align: center; margin-top: -20px; margin-bottom: 15px;">
+<img src="Viewpoint Logo.jpg" alt="View Point Logo" style="max-width: 200px; margin-bottom: 2px;"><br>
 <span style="font-weight: bold;">View Point, Inc.</span>
 6715 W. State Street • Boise, ID. 83714
 Telephone (208) 854-1877 • Fax (208) 854-1878
 <a href="http://www.viewpointwindows.com" style="color: blue; text-decoration: underline;">www.viewpointwindows.com</a>
+</div>
+
 ${letterDate}
-
 VIA CERTIFIED MAIL
-
 # ${certifiedMailNumber}
 
 Name: ${customerName}
-
 Address: ${letterPropertyAddress}
 
 To Whom It May Concern:
@@ -519,8 +518,9 @@ Because View Point is providing work and/or materials to your property, we are r
 
 If there are questions or concerns, please contact Michele Clark: (208) 854-1877
 
-<div style="margin-top: 20px;">
-<img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 180px;">
+<div style="margin-top: 10px; margin-bottom: 0;">
+<img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 180px; margin-bottom: -5px;">
+</div>
 __________________
 Jay L. Singleton
 View Point, COO
