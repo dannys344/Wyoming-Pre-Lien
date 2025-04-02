@@ -154,6 +154,7 @@
 </head>
 <body>
     <div class="container">
+        <button type="button" style="position: absolute; top: 20px; left: 20px; background-color: #3d85c6; color: white;" onclick="downloadAllDocuments()">Download All Documents</button>
         <h1>View Point Document Generator</h1>
         <button type="button" class="clear-button" onclick="clearAllFields()">Clear All Fields</button>
 
@@ -575,6 +576,21 @@ cc: General Contractor
             showPreview('lien');
         }
 
+        function downloadAllDocuments() {
+            // First generate preview if it hasn't been generated yet
+            if (document.getElementById('previewLienDocument').innerHTML === '') {
+                generatePreview();
+            }
+            
+            // Download lien document first
+            generatePDF('lien');
+            
+            // Set a timeout to download letter document after the first one completes
+            setTimeout(function() {
+                generatePDF('letter');
+            }, 1000);
+        }
+        
         function generatePDF(type) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({
