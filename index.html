@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Point Document Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Removed jsPDF and html2canvas -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -143,6 +142,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <!-- Remove jsPDF and html2canvas as they are no longer needed -->
+
 </head>
 <body>
     <div class="container">
@@ -308,8 +309,8 @@
             
             <div class="buttons">
                 <button onclick="goBackToForm()">Edit Form</button>
-                <button onclick="generatePDF('lien')">Download Notice of Right to Lien PDF</button>
-                <button onclick="generatePDF('letter')">Download Notice Letter PDF</button>
+                <button onclick="generatePDF('lien')">Download Notice of Right to Lien</button>
+                <button onclick="generatePDF('letter')">Download Notice Letter</button>
             </div>
         </div>
     </div>
@@ -541,118 +542,45 @@ cc: General Contractor
         }
 
         function generatePDF(type) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'letter',
-                // Adding margins to avoid content getting cut off
-                margins: {
-                    top: 20,
-                    bottom: 20,
-                    left: 20,
-                    right: 20
-                }
-            });
-
-            // Determine which preview element to use based on type
-            const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
-            // Include property address in filename
+            // Get property address for filename
             const propertyAddress = document.getElementById('propertyAddress').value || 'unknown-address';
             // Create sanitized address for filename (remove special characters and spaces)
             const sanitizedAddress = propertyAddress.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
             const filename = type === 'lien' ? 
-                `Notice of Right to Lien - ${sanitizedAddress}.pdf` : 
-                `Notice Letter - ${sanitizedAddress}.pdf`;
+                `Notice of Right to Lien - ${sanitizedAddress}.docx` : 
+                `Notice Letter - ${sanitizedAddress}.docx`;
             
+            // Get the content from the preview
+            const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
             const previewElement = document.getElementById(previewElementId);
             
-            // Get all page elements
-            const pages = previewElement.querySelectorAll('.page-break');
+            // Create a blob with HTML content for Word
+            const htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+                      xmlns:w='urn:schemas-microsoft-com:office:word'
+                      xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset="utf-8">
+                    <title>${filename}</title>
+                    <style>
+                        body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; }
+                        .page-break { page-break-before: always; }
+                    </style>
+                </head>
+                <body>
+                    ${previewElement.innerHTML}
+                </body>
+                </html>
+            `;
             
-            if (pages.length > 0 && type === 'lien') {
-                // For multi-page documents
-                let currentPage = previewElement.innerHTML.split('<div class="page-break"></div>');
-                
-                for (let i = 0; i < currentPage.length; i++) {
-                    // Create temporary div for each page
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = currentPage[i];
-                    tempDiv.style.width = '170mm';
-                    tempDiv.style.padding = '20mm';
-                    tempDiv.style.fontFamily = 'Times New Roman';
-                    tempDiv.style.fontSize = '12pt';
-                    tempDiv.style.lineHeight = '1.5';
-                    tempDiv.style.whiteSpace = 'pre-wrap';
-                    tempDiv.style.position = 'absolute';
-                    tempDiv.style.left = '-9999px';
-                    document.body.appendChild(tempDiv);
-                    
-                    html2canvas(tempDiv, {
-                        scale: 2,
-                        logging: false,
-                        scrollY: -window.scrollY,
-                        windowWidth: document.documentElement.offsetWidth,
-                        windowHeight: document.documentElement.offsetHeight
-                    }).then(canvas => {
-                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                        const imgWidth = 190;
-                        const imgHeight = canvas.height * imgWidth / canvas.width;
-                        
-                        if (i > 0) {
-                            doc.addPage();
-                        }
-                        
-                        doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
-                        
-                        if (i === currentPage.length - 1) {
-                            doc.save(filename);
-                            document.body.removeChild(tempDiv);
-                        }
-                    });
-                }
-            } else {
-                // For single page documents
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = previewElement.innerHTML;
-                tempDiv.style.width = '170mm';
-                tempDiv.style.padding = '20mm';
-                tempDiv.style.fontFamily = 'Times New Roman';
-                tempDiv.style.fontSize = '12pt';
-                tempDiv.style.lineHeight = '1.5';
-                tempDiv.style.whiteSpace = 'pre-wrap';
-                tempDiv.style.position = 'absolute';
-                tempDiv.style.left = '-9999px';
-                document.body.appendChild(tempDiv);
-
-                html2canvas(tempDiv, {
-                    scale: 2,
-                    logging: false,
-                    scrollY: -window.scrollY,
-                    windowWidth: document.documentElement.offsetWidth,
-                    windowHeight: document.documentElement.offsetHeight
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                    const imgWidth = 190;
-                    const pageHeight = 277;
-                    const imgHeight = canvas.height * imgWidth / canvas.width;
-                    let heightLeft = imgHeight;
-                    let position = 0;
-
-                    doc.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
-
-                    while (heightLeft >= 0) {
-                        position = heightLeft - imgHeight;
-                        doc.addPage();
-                        doc.addImage(imgData, 'JPEG', 10, position + 10, imgWidth, imgHeight);
-                        heightLeft -= pageHeight;
-                    }
-
-                    doc.save(filename);
-                    document.body.removeChild(tempDiv);
-                });
-            }
+            // Create blob and download
+            const blob = new Blob([htmlContent], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
