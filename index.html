@@ -326,14 +326,15 @@
         // Set default date values
         window.onload = function() {
             const today = new Date();
-            document.getElementById('currentDate').valueAsDate = today;
-            document.getElementById('dayOfMonth').value = today.getDate();
-            document.getElementById('currentMonth').selectedIndex = today.getMonth();
-            document.getElementById('currentYear').value = today.getFullYear();
+            const realToday = new Date(); // Store the actual current date
+            document.getElementById('currentDate').valueAsDate = realToday;
+            document.getElementById('dayOfMonth').value = realToday.getDate();
+            document.getElementById('currentMonth').selectedIndex = realToday.getMonth();
+            document.getElementById('currentYear').value = realToday.getFullYear();
             
             // Format and set the current date for the Notice Letter
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('letterDate').value = today.toLocaleDateString('en-US', options);
+            document.getElementById('letterDate').value = realToday.toLocaleDateString('en-US', options);
         };
 
         // Function to update Notice Letter address when Notice of Right to Lien address changes
@@ -385,7 +386,8 @@
         }
 
         function formatDate(dateString) {
-            const date = new Date(dateString);
+            // Always use the current date instead of the one from the input
+            const date = new Date();
             const month = date.toLocaleString('default', { month: 'long' });
             const day = date.getDate();
             const year = date.getFullYear();
@@ -444,7 +446,7 @@ SIGNED:
 ${currentDate}
 
 <div class="page-break"></div>
-<div style="text-align: center; font-weight: bold; margin-bottom: 10px;">${currentDate}</div>
+<div style="text-align: left; margin-bottom: 10px;">${currentDate}</div>
 <div style="text-align: center; font-weight: bold; margin-bottom: 10px;">LIEN WAIVER</div>
  
 TO: ${fullContractorInfo}
