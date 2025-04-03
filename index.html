@@ -220,16 +220,10 @@
                 <textarea id="legalDescription" placeholder="Enter legal description here"></textarea>
             </div>
 
-            <!-- 6. Contractor Contact Information -->
+            <!-- 6. Customer Name (Replaced contractor info) -->
             <div class="form-group">
-                <label for="contractorInfo">Contractor Contact Information (Name, Mobile, Email):</label>
-                <textarea id="contractorInfo" placeholder="Example: John Smith Mobile: (555) 123-4567 john.smith@example.com"></textarea>
-            </div>
-
-            <!-- 7. Contractor Address -->
-            <div class="form-group">
-                <label for="contractorAddress">Contractor Address:</label>
-                <textarea id="contractorAddress" placeholder="Example: ABC Construction 123 Main St, Suite 100 Anytown, WY 82001"></textarea>
+                <label for="customerNameLien">Customer Name:</label>
+                <input type="text" id="customerNameLien" placeholder="Enter customer name" onchange="updateNoticeLetterCustomer()">
             </div>
 
             <!-- 8. Total Contract Cost -->
@@ -290,10 +284,10 @@
                 <input type="text" id="certifiedMailNumber" placeholder="Enter certified mail number">
             </div>
 
-            <!-- 3. Customer Name -->
+            <!-- 3. Customer Name (linked with Notice of Right to Lien) -->
             <div class="form-group">
                 <label for="customerName">Customer Name:</label>
-                <input type="text" id="customerName" placeholder="Enter customer name">
+                <input type="text" id="customerName" placeholder="Enter customer name" onchange="updateLienCustomer()">
             </div>
 
             <!-- 4. Property Address (auto-populated from Notice of Right to Lien) -->
@@ -366,8 +360,7 @@
             document.getElementById('projectName').value = '';
             document.getElementById('parcelId').value = '';
             document.getElementById('legalDescription').value = '';
-            document.getElementById('contractorInfo').value = '';
-            document.getElementById('contractorAddress').value = '';
+            document.getElementById('customerNameLien').value = '';
             document.getElementById('totalContractCost').value = '';
             
             // Reset Select2 dropdown
@@ -387,6 +380,18 @@
         function updateNoticeLetterAddress() {
             const propertyAddress = document.getElementById('propertyAddress').value;
             document.getElementById('letterPropertyAddress').value = propertyAddress;
+        }
+
+        // Function to update Notice Letter customer when Lien customer changes
+        function updateNoticeLetterCustomer() {
+            const customerName = document.getElementById('customerNameLien').value;
+            document.getElementById('customerName').value = customerName;
+        }
+
+        // Function to update Lien customer when Notice Letter customer changes
+        function updateLienCustomer() {
+            const customerName = document.getElementById('customerName').value;
+            document.getElementById('customerNameLien').value = customerName;
         }
 
         // Function to get the signature as an image
@@ -451,8 +456,7 @@
             const county = document.getElementById('county').value || '[County Not Provided]';
             const parcelId = document.getElementById('parcelId').value || '[Parcel ID Not Provided]';
             const legalDescription = document.getElementById('legalDescription').value || '[Legal Description Not Provided]';
-            const contractorInfo = document.getElementById('contractorInfo').value || '[Contractor Information Not Provided]';
-            const contractorAddress = document.getElementById('contractorAddress').value || '[Contractor Address Not Provided]';
+            const customerName = document.getElementById('customerNameLien').value || '[Customer Name Not Provided]';
             const totalContractCost = document.getElementById('totalContractCost').value || '[Amount Not Provided]';
             
             // Date values
@@ -462,9 +466,6 @@
             const dayWithSuffix = dayOfMonth + getOrdinalSuffix(parseInt(dayOfMonth));
             const currentMonth = document.getElementById('currentMonth').value;
             const currentYear = document.getElementById('currentYear').value || '[Year Not Provided]';
-
-            // Combine contractor info and address for the TO: field
-            const fullContractorInfo = `${contractorInfo}\n${contractorAddress}`;
             
             // Get the signature HTML
             const signatureHtml = getSignatureHtml();
@@ -499,7 +500,7 @@ ${currentDate}
 <div style="text-align: left; margin-bottom: 10px;">${currentDate}</div>
 <div style="text-align: center; font-weight: bold; margin-bottom: 10px;">LIEN WAIVER</div>
  
-TO: ${fullContractorInfo}
+TO: ${customerName}
  
 PROJECT: ${projectName}
 FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">VIEW POINT, INC.</span>
@@ -538,7 +539,7 @@ Seal:
             // Gather values for Notice Letter
             const letterDate = document.getElementById('letterDate').value;
             const certifiedMailNumber = document.getElementById('certifiedMailNumber').value || '[Certified Mail Number Not Provided]';
-            const customerName = document.getElementById('customerName').value || '[Customer Name Not Provided]';
+            const letterCustomerName = document.getElementById('customerName').value || '[Customer Name Not Provided]';
             const letterPropertyAddress = document.getElementById('letterPropertyAddress').value || '[Property Address Not Provided]';
 
             // Generate Notice Letter document
@@ -554,7 +555,7 @@ ${letterDate}
 VIA CERTIFIED MAIL
 # ${certifiedMailNumber}
 
-Name: ${customerName}
+Name: ${letterCustomerName}
 Address: ${letterPropertyAddress}
 
 To Whom It May Concern:
