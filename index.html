@@ -69,7 +69,7 @@
         }
         .preview-document {
             font-family: 'Times New Roman', Times, serif;
-            font-size: 14pt;
+            font-size: 12pt;
             line-height: 1.5;
             white-space: pre-wrap;
         }
@@ -396,7 +396,7 @@
 
         // Function to get the signature as an image
         function getSignatureHtml() {
-            return `<img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: 0px;"><br>Jay L. Singleton, COO`;
+            return `<div><img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: 0px; display: block;">Jay L. Singleton, COO</div>`;
         }
 
         function openTab(evt, tabName) {
@@ -471,7 +471,7 @@
             const signatureHtml = getSignatureHtml();
 
             // Generate Notice of Right to Lien document with page breaks
-            const lienDocumentContent = `<div style="white-space: pre-wrap; font-size: 14pt !important;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 14pt !important;">NOTICE TO OWNER</div>
+            const lienDocumentContent = `<div style="white-space: pre-wrap; font-size: 12pt !important;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 12pt !important;">NOTICE TO OWNER</div>
  
 The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property can result in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
  
@@ -497,8 +497,8 @@ SIGNED:
 ${currentDate}
 
 <div class="page-break"></div>
-<div style="text-align: left; margin-bottom: 10px; font-size: 14pt !important;">${currentDate}</div>
-<div style="text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 14pt !important;">LIEN WAIVER</div>
+<div style="text-align: left; margin-bottom: 10px; font-size: 12pt !important;">${currentDate}</div>
+<div style="text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 12pt !important;">LIEN WAIVER</div>
  
 TO: ${customerName}
  
@@ -512,6 +512,7 @@ PAYMENT: <span style="border-bottom: 1px solid black; padding-bottom: 1px; displ
 In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">$${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">$${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
  
 By:
+
 ${signatureHtml}
 
 <div class="page-break"></div>
@@ -543,7 +544,7 @@ Seal:
             const letterPropertyAddress = document.getElementById('letterPropertyAddress').value || '[Property Address Not Provided]';
 
             // Generate Notice Letter document
-            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 14pt !important; line-height: 1.3; padding-top: 0;">
+            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt !important; line-height: 1.3; padding-top: 0;">
 <div style="text-align: center; margin-top: -20px; margin-bottom: 5px;">
 <img src="Viewpoint Logo.jpg" alt="View Point Logo" style="max-width: 200px; margin-bottom: 0px;"><br>
 <span style="font-weight: bold;">View Point, Inc.</span>
@@ -642,65 +643,6 @@ cc: General Contractor
                     
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = pageContents[pageIndex];
+                    tempDiv.style.width = '215.9mm'; // Letter width
                     tempDiv.style.padding = '15mm';
-                    tempDiv.style.fontFamily = '"Times New Roman", Times, serif';
-                    tempDiv.style.fontSize = '14pt !important';
-                    tempDiv.style.lineHeight = '1.5';
-                    tempDiv.style.whiteSpace = 'pre-wrap';
-                    tempDiv.style.backgroundColor = 'white';
-                    document.body.appendChild(tempDiv);
-                    
-                    html2canvas(tempDiv, {
-                        scale: 2,
-                        backgroundColor: 'white',
-                        logging: false
-                    }).then(canvas => {
-                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                        const imgWidth = 190; // Slightly narrower than page for margins
-                        const imgHeight = canvas.height * imgWidth / canvas.width;
-                        
-                        if (pageIndex > 0) {
-                            doc.addPage();
-                        }
-                        
-                        doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
-                        document.body.removeChild(tempDiv);
-                        
-                        pageIndex++;
-                        processNextPage();
-                    });
-                }
-                
-                processNextPage();
-            } else {
-                // For single page letter document
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = previewElement.innerHTML;
-                tempDiv.style.width = '215.9mm'; // Letter width
-                tempDiv.style.padding = '15mm';
-                tempDiv.style.fontFamily = '"Times New Roman", Times, serif';
-                tempDiv.style.fontSize = '14pt !important';
-                tempDiv.style.lineHeight = '1.3';
-                tempDiv.style.whiteSpace = 'pre-wrap';
-                tempDiv.style.backgroundColor = 'white';
-                document.body.appendChild(tempDiv);
-                
-                html2canvas(tempDiv, {
-                    scale: 2,
-                    backgroundColor: 'white',
-                    logging: false
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                    const imgWidth = 190;
-                    const imgHeight = canvas.height * imgWidth / canvas.width;
-                    
-                    doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
-                    doc.save(filename);
-                    document.body.removeChild(tempDiv);
-                });
-            }
-        }
-    </script>
-</body>
-</html>.width = '215.9mm'; // Letter width
-                    tempDiv.style
+                    tempDiv.style.fontFamily = '"Times New
