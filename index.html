@@ -69,12 +69,9 @@
         }
         .preview-document {
             font-family: 'Times New Roman', Times, serif;
-            font-size: 12pt !important;
+            font-size: 12pt;
             line-height: 1.5;
             white-space: pre-wrap;
-        }
-        .preview-document * {
-            font-size: 12pt !important;
         }
         .buttons {
             display: flex;
@@ -470,73 +467,70 @@
             const currentMonth = document.getElementById('currentMonth').value;
             const currentYear = document.getElementById('currentYear').value || '[Year Not Provided]';
             
-            // Get the signature HTML
-            const signatureHtml = getSignatureHtml();
-
             // Generate Notice of Right to Lien document with page breaks
-            const lienDocumentContent = `<div style="white-space: pre-wrap; font-size: 12pt !important;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 12pt !important;">NOTICE TO OWNER</div>
+            const lienDocumentContent = `<div style="white-space: pre-wrap; font-size: 12pt; font-family: 'Times New Roman', Times, serif;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">NOTICE TO OWNER</div>
  
-<span style="font-size: 12pt !important;">The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property can result in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.</span>
+The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property can result in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
  
-<span style="font-size: 12pt !important;">Name, address and telephone number of contractor, subcontractor or materialman, and contact person:</span>
- <span style="font-size: 12pt !important;">View Point, Inc.</span>
- <span style="font-size: 12pt !important;">6175 W. State Street</span>
- <span style="font-size: 12pt !important;">Boise, ID 83714</span>
+Name, address and telephone number of contractor, subcontractor or materialman, and contact person:
+ View Point, Inc.
+ 6175 W. State Street
+ Boise, ID 83714
  
- <span style="font-size: 12pt !important;">Contact: Dylan Harris</span>
-              <span style="font-size: 12pt !important;">(208) 866-4309</span>
+ Contact: Dylan Harris
+              (208) 866-4309
  
-<span style="font-size: 12pt !important;">MATERIALS PROVIDED/WORK PERFORMED:</span>
-<span style="font-size: 12pt !important;">BUILDING MATERIALS AND LABOR</span>
+MATERIALS PROVIDED/WORK PERFORMED:
+BUILDING MATERIALS AND LABOR
  
-<span style="font-size: 12pt !important;">PROPERTY DESCRIPTION: ${legalDescription}</span>
+PROPERTY DESCRIPTION: ${legalDescription}
  
-<span style="font-size: 12pt !important;">ADDRESS: ${propertyAddress}</span>
+ADDRESS: ${propertyAddress}
  
-<span style="font-size: 12pt !important;">PARCEL IDENTIFICATION: ${parcelId}</span>
-<span style="font-size: 12pt !important;">SIGNED:</span>        
-                        ${signatureHtml}
+PARCEL IDENTIFICATION: ${parcelId}
+SIGNED:        
+                        <img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: 0px;"><br>Jay L. Singleton, COO
  
-<span style="font-size: 12pt !important;">${currentDate}</span>
+${currentDate}
 
 <div class="page-break"></div>
-<div style="text-align: left; margin-bottom: 10px; font-size: 12pt !important;">${currentDate}</div>
-<div style="text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 12pt !important;">LIEN WAIVER</div>
+<div style="text-align: left; margin-bottom: 10px;">${currentDate}</div>
+<div style="text-align: center; font-weight: bold; margin-bottom: 10px;">LIEN WAIVER</div>
  
-<span style="font-size: 12pt !important;">TO: ${customerName}</span>
+TO: ${customerName}
  
-<span style="font-size: 12pt !important;">PROJECT: ${projectName}</span>
-<span style="font-size: 12pt !important;">FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center; font-size: 12pt !important;">VIEW POINT, INC.</span></span>
+PROJECT: ${projectName}
+FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">VIEW POINT, INC.</span>
  
-<span style="font-size: 12pt !important;">DATE: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center; font-size: 12pt !important;">${currentDate}</span></span>
+DATE: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">${currentDate}</span>
  
-<span style="font-size: 12pt !important;">PAYMENT: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center; font-size: 12pt !important;">$${totalContractCost}</span></span>
+PAYMENT: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">$${totalContractCost}</span>
  
-<span style="font-size: 12pt !important;">In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center; font-size: 12pt !important;">$${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center; font-size: 12pt !important;">$${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.</span>
+In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">$${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">$${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
  
-<span style="font-size: 12pt !important;">By:</span>
-${signatureHtml}
+By:
+<img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: 0px;"><br>Jay L. Singleton, COO
 
 <div class="page-break"></div>
-<span style="font-size: 12pt !important;">STATE OF WYOMING                                                )</span>
-<span style="font-size: 12pt !important;">                                                                )  ss.</span>
-<span style="font-size: 12pt !important;">COUNTY OF ${county.toUpperCase()}                               )</span>
+STATE OF WYOMING                                                )
+                                                                )  ss.
+COUNTY OF ${county.toUpperCase()}                               )
 
-<span style="font-size: 12pt !important;">This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center; font-size: 12pt !important;">${dayWithSuffix}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center; font-size: 12pt !important;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center; font-size: 12pt !important;">${currentYear}</span>, by</span>
+This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${dayWithSuffix}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentYear}</span>, by
  
-<span style="font-size: 12pt !important;"><span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center; font-size: 12pt !important;"></span> as lien claimant or</span>
+<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span> as lien claimant or
  
-<span style="font-size: 12pt !important;"><span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center; font-size: 12pt !important;"></span> of</span>
-<span style="font-size: 12pt !important;"><span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center; font-size: 12pt !important;"></span></span>
+<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span> of
+<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span>
  
-<span style="font-size: 12pt !important;">(lien claimant).</span>
+(lien claimant).
  
-<span style="font-size: 12pt !important;">IN WITNESS THEREOF, I have hereunto set my hand and affixed my official seal on the day and year last above written.</span>
+IN WITNESS THEREOF, I have hereunto set my hand and affixed my official seal on the day and year last above written.
  
-<span style="font-size: 12pt !important;">______________________________</span>
-<span style="font-size: 12pt !important;">Notarial officer</span>
-<span style="font-size: 12pt !important;">My Commission Expires:</span>
-<span style="font-size: 12pt !important;">Seal:</span>
+______________________________
+Notarial officer
+My Commission Expires:
+Seal:
 </div>`;
 
             // Gather values for Notice Letter
@@ -546,36 +540,36 @@ ${signatureHtml}
             const letterPropertyAddress = document.getElementById('letterPropertyAddress').value || '[Property Address Not Provided]';
 
             // Generate Notice Letter document
-            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt !important; line-height: 1.3; padding-top: 0;">
+            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.3; padding-top: 0;">
 <div style="text-align: center; margin-top: -20px; margin-bottom: 5px;">
 <img src="Viewpoint Logo.jpg" alt="View Point Logo" style="max-width: 200px; margin-bottom: 0px;"><br>
-<span style="font-weight: bold; font-size: 12pt !important;">View Point, Inc.</span>
-<span style="font-size: 12pt !important;">6715 W. State Street • Boise, ID. 83714</span>
-<span style="font-size: 12pt !important;">Telephone (208) 854-1877 • Fax (208) 854-1878</span>
-<a href="http://www.viewpointwindows.com" style="color: blue; text-decoration: underline; font-size: 12pt !important;">www.viewpointwindows.com</a>
+<span style="font-weight: bold;">View Point, Inc.</span>
+6715 W. State Street • Boise, ID. 83714
+Telephone (208) 854-1877 • Fax (208) 854-1878
+<a href="http://www.viewpointwindows.com" style="color: blue; text-decoration: underline;">www.viewpointwindows.com</a>
 </div>
-<span style="font-size: 12pt !important;">${letterDate}</span>
-<span style="font-size: 12pt !important;">VIA CERTIFIED MAIL</span>
-<span style="font-size: 12pt !important;"># ${certifiedMailNumber}</span>
+${letterDate}
+VIA CERTIFIED MAIL
+# ${certifiedMailNumber}
 
-<span style="font-size: 12pt !important;">Name: ${letterCustomerName}</span>
-<span style="font-size: 12pt !important;">Address: ${letterPropertyAddress}</span>
+Name: ${letterCustomerName}
+Address: ${letterPropertyAddress}
 
-<span style="font-size: 12pt !important;">To Whom It May Concern:</span>
+To Whom It May Concern:
 
-<span style="font-size: 12pt !important;">Thank you for choosing View Point. We appreciate your business and look forward to working with you!</span>
+Thank you for choosing View Point. We appreciate your business and look forward to working with you!
 
-<span style="font-size: 12pt !important;">Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is not a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
+Because View Point is providing work and/or materials to your property, we are required by the State of Wyoming to provide you with the enclosed document and form Lien Waiver. This is not a Notice of Lien; our intention is to inform the property owner of The State of Wyoming's law of our Right to Lien should payment not be completed. No action is required by you. If needed, we can issue you a completed Lien Waiver upon the final payment of View Point invoice(s).
 
-<span style="font-size: 12pt !important;">If there are questions or concerns, please contact Dylan Harris: (208) 866-4309</span>
+If there are questions or concerns, please contact Dylan Harris: (208) 866-4309
 
-${signatureHtml}
-<span style="font-size: 12pt !important;">__________________</span>
-<span style="font-size: 12pt !important;">Jay L. Singleton</span>
-<span style="font-size: 12pt !important;">View Point, COO</span>
+<img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: 0px;"><br>
+__________________
+Jay L. Singleton
+View Point, COO
 
-<span style="font-size: 12pt !important;">JLS/mc</span>
-<span style="font-size: 12pt !important;">cc: General Contractor</span>
+JLS/mc
+cc: General Contractor
 </div>`;
 
             // Update the preview divs
