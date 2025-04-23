@@ -69,9 +69,12 @@
         }
         .preview-document {
             font-family: 'Times New Roman', Times, serif;
-            font-size: 14pt;
+            font-size: 14pt !important;
             line-height: 1.5;
             white-space: pre-wrap;
+        }
+        .preview-document * {
+            font-size: 14pt !important;
         }
         .buttons {
             display: flex;
@@ -146,6 +149,12 @@
             right: 20px;
             background-color: #f44336;
             color: white;
+        }
+        /* Custom class for document text - used for PDF generation */
+        .document-text {
+            font-family: 'Times New Roman', Times, serif !important;
+            font-size: 14pt !important;
+            line-height: 1.5 !important;
         }
     </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
@@ -471,7 +480,7 @@
             const signatureHtml = getSignatureHtml();
 
             // Generate Notice of Right to Lien document with page breaks
-            const lienDocumentContent = `<div style="white-space: pre-wrap;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">NOTICE TO OWNER</div>
+            const lienDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif !important; font-size: 14pt !important; line-height: 1.5;" class="document-text"><div style="text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 14pt !important;">NOTICE TO OWNER</div>
  
 The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property can result in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
  
@@ -497,34 +506,34 @@ SIGNED:
 ${currentDate}
 
 <div class="page-break"></div>
-<div style="text-align: left; margin-bottom: 10px;">${currentDate}</div>
-<div style="text-align: center; font-weight: bold; margin-bottom: 10px;">LIEN WAIVER</div>
+<div style="text-align: left; margin-bottom: 10px; font-size: 14pt !important;">${currentDate}</div>
+<div style="text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 14pt !important;">LIEN WAIVER</div>
  
 TO: ${customerName}
  
 PROJECT: ${projectName}
-FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">VIEW POINT, INC.</span>
+FROM: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center; font-size: 14pt !important;">VIEW POINT, INC.</span>
  
-DATE: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">${currentDate}</span>
+DATE: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center; font-size: 14pt !important;">${currentDate}</span>
  
-PAYMENT: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">$${totalContractCost}</span>
+PAYMENT: <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center; font-size: 14pt !important;">${totalContractCost}</span>
  
-In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">$${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center;">$${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
+In consideration of the PAYMENT received to date, the undersigned does hereby waive, release, and relinquish any and all claim and/or right of lien against the project and the real property improvements thereto for labor and/or materials furnished for use in construction of the project; provided however, the undersigned reserves all claims and/or rights of lien as to monies withheld as retainage in the amount of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center; font-size: 14pt !important;">${totalContractCost}</span>, and any labor and/or materials hereafter furnished for which payment has not yet been made. The undersigned has not been paid the sum of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 250px; text-align: center; font-size: 14pt !important;">${totalContractCost}</span> for work performed and/or materials provided under contract on this project and retains the right to file a lien against the property and pursue any and all actions to recover the full amount due, including any and all equitable claims. The undersigned acknowledges receipt of payment for work performed or materials provided and acknowledges that this waiver may be relied upon by the owner even if the undersigned accepts payment in uncertified funds and such payment is subsequently dishonored or revoked, in which case this lien waiver shall remain in full force and effect. The foregoing waiver shall not apply, however, if payment tendered by the owner is dishonored or revoked.
  
 By:
-${signatureHtml}
+<div style="margin-top: 10px; margin-bottom: 10px;">${signatureHtml}</div>
 
 <div class="page-break"></div>
 STATE OF WYOMING                                                )
                                                                 )  ss.
 COUNTY OF ${county.toUpperCase()}                               )
 
-This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${dayWithSuffix}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center;">${currentYear}</span>, by
+This instrument was acknowledged before me on this <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center; font-size: 14pt !important;">${dayWithSuffix}</span> day of <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center; font-size: 14pt !important;">${currentMonth}</span>, <span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 100px; text-align: center; font-size: 14pt !important;">${currentYear}</span>, by
  
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span> as lien claimant or
+<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center; font-size: 14pt !important;"></span> as lien claimant or
  
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span> of
-<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center;"></span>
+<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center; font-size: 14pt !important;"></span> of
+<span style="border-bottom: 1px solid black; padding-bottom: 1px; display: inline-block; min-width: 300px; text-align: center; font-size: 14pt !important;"></span>
  
 (lien claimant).
  
@@ -543,13 +552,13 @@ Seal:
             const letterPropertyAddress = document.getElementById('letterPropertyAddress').value || '[Property Address Not Provided]';
 
             // Generate Notice Letter document
-            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.3; padding-top: 0;">
+            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif !important; font-size: 14pt !important; line-height: 1.3; padding-top: 0;" class="document-text">
 <div style="text-align: center; margin-top: -20px; margin-bottom: 5px;">
 <img src="Viewpoint Logo.jpg" alt="View Point Logo" style="max-width: 200px; margin-bottom: 0px;"><br>
-<span style="font-weight: bold;">View Point, Inc.</span>
+<span style="font-weight: bold; font-size: 14pt !important;">View Point, Inc.</span>
 6715 W. State Street • Boise, ID. 83714
 Telephone (208) 854-1877 • Fax (208) 854-1878
-<a href="http://www.viewpointwindows.com" style="color: blue; text-decoration: underline;">www.viewpointwindows.com</a>
+<a href="http://www.viewpointwindows.com" style="color: blue; text-decoration: underline; font-size: 14pt !important;">www.viewpointwindows.com</a>
 </div>
 ${letterDate}
 VIA CERTIFIED MAIL
@@ -621,74 +630,4 @@ cc: General Contractor
 
             // Determine which preview element to use based on type
             const previewElementId = type === 'lien' ? 'previewLienDocument' : 'previewLetterDocument';
-            const propertyAddress = document.getElementById('propertyAddress').value || 'unknown-address';
-            const sanitizedAddress = propertyAddress.replace(/[^\w\s]/gi, '').replace(/\s+/g, '-');
-            const filename = type === 'lien' ? 
-                `Notice of Right to Lien - ${sanitizedAddress}.pdf` : 
-                `Notice Letter - ${sanitizedAddress}.pdf`;
-            
-            const previewElement = document.getElementById(previewElementId);
-            
-            if (type === 'lien') {
-                // For multi-page lien document
-                const pageContents = previewElement.innerHTML.split('<div class="page-break"></div>');
-                let pageIndex = 0;
-                
-                function processNextPage() {
-                    if (pageIndex >= pageContents.length) {
-                        doc.save(filename);
-                        return;
-                    }
-                    
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = pageContents[pageIndex];
-                    tempDiv.style.width = '215.9mm'; // Letter width
-                    tempDiv.style.padding = '15mm';
-                    tempDiv.style.fontFamily = 'Times New Roman';
-                    tempDiv.style.fontSize = '14pt';
-                    tempDiv.style.lineHeight = '1.5';
-                    tempDiv.style.whiteSpace = 'pre-wrap';
-                    tempDiv.style.backgroundColor = 'white';
-                    document.body.appendChild(tempDiv);
-                    
-                    html2canvas(tempDiv, {
-                        scale: 2,
-                        backgroundColor: 'white',
-                        logging: false
-                    }).then(canvas => {
-                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                        const imgWidth = 190; // Slightly narrower than page for margins
-                        const imgHeight = canvas.height * imgWidth / canvas.width;
-                        
-                        if (pageIndex > 0) {
-                            doc.addPage();
-                        }
-                        
-                        doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
-                        document.body.removeChild(tempDiv);
-                        
-                        pageIndex++;
-                        processNextPage();
-                    });
-                }
-                
-                processNextPage();
-            } else {
-                // For single page letter document
-                html2canvas(previewElement, {
-                    scale: 2,
-                    backgroundColor: 'white',
-                    logging: false
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                    const imgWidth = 190;
-                    const imgHeight = canvas.height * imgWidth / canvas.width;
-                    
-                    doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
-                    doc.save(filename);
-                });
-            }
-        }
-    </script>
-</body>
-</html>
+            const propertyAddress = document.getElementById('propertyAddress').value || 'unknown
