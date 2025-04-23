@@ -68,8 +68,8 @@
             display: none;
         }
         .preview-document {
-            font-family: 'Times New Roman', Times, serif !important;
-            font-size: 12pt !important;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
             line-height: 1.5;
             white-space: pre-wrap;
         }
@@ -146,11 +146,6 @@
             right: 20px;
             background-color: #f44336;
             color: white;
-        }
-        /* Force font styling */
-        .force-font {
-            font-family: 'Times New Roman', Times, serif !important;
-            font-size: 12pt !important;
         }
     </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
@@ -330,21 +325,7 @@
                 placeholder: "Select a county or start typing to search",
                 allowClear: true
             });
-            
-            // Add event listeners to ensure font consistency
-            document.querySelectorAll('.tablinks').forEach(button => {
-                button.addEventListener('click', enforceFontStyling);
-            });
         });
-
-        // Function to force consistent font styling
-        function enforceFontStyling() {
-            document.querySelectorAll('.preview-document, .preview-document *').forEach(el => {
-                el.style.fontFamily = '"Times New Roman", Times, serif';
-                el.style.fontSize = '12pt';
-                el.classList.add('force-font');
-            });
-        }
 
         // Set default date values
         window.onload = function() {
@@ -415,19 +396,24 @@
 
         // Function to get the signature as an image
         function getSignatureHtml() {
-            return `<div style="margin-top: 10px; margin-bottom: 10px;"><img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 150px; display: block;"><div style="font-family: 'Times New Roman', Times, serif !important; font-size: 12pt !important;">Jay L. Singleton, COO</div></div>`;
+            return `<div style="margin-top: 10px; margin-bottom: 10px;"><img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 150px; display: block;">Jay L. Singleton, COO</div>`;
         }
 
+        // FIXED FUNCTION: This was causing the button issues
         function openTab(evt, tabName) {
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tabcontent");
-            for (i = 0; i < tabcontent.length; i++) {
+            // Hide all tab content
+            var tabcontent = document.getElementsByClassName("tabcontent");
+            for (var i = 0; i < tabcontent.length; i++) {
                 tabcontent[i].style.display = "none";
             }
-            tablinks = document.getElementsByClassName("tablinks");
-            for (i = 0; i < tablinks.length; i++) {
+            
+            // Remove active class from all tab buttons
+            var tablinks = document.getElementsByClassName("tablinks");
+            for (var i = 0; i < tablinks.length; i++) {
                 tablinks[i].className = tablinks[i].className.replace(" active", "");
             }
+            
+            // Show the current tab and add active class to the button
             document.getElementById(tabName).style.display = "block";
             if (evt && evt.currentTarget) {
                 evt.currentTarget.className += " active";
@@ -438,18 +424,19 @@
             } else if (tabName === "PreviewTab") {
                 document.querySelector('.tablinks:nth-child(3)').className += " active";
             }
-            
-            // Enforce font styling after tab switch
-            enforceFontStyling();
         }
 
+        // FIXED FUNCTION: This was also causing issues
         function showPreview(type) {
+            // Hide all preview documents
             document.getElementById('previewLienDocument').style.display = 'none';
             document.getElementById('previewLetterDocument').style.display = 'none';
             
+            // Remove active class from buttons
             document.getElementById('previewLienBtn').classList.remove('active');
             document.getElementById('previewLetterBtn').classList.remove('active');
             
+            // Show selected document and activate button
             if (type === 'lien') {
                 document.getElementById('previewLienDocument').style.display = 'block';
                 document.getElementById('previewLienBtn').classList.add('active');
@@ -457,11 +444,9 @@
                 document.getElementById('previewLetterDocument').style.display = 'block';
                 document.getElementById('previewLetterBtn').classList.add('active');
             }
-            
-            // Enforce font styling after switching preview
-            enforceFontStyling();
         }
 
+        // FIXED FUNCTION: This was also causing issues
         function goBackToForm() {
             openTab(null, 'NoticeRightToLienTab');
         }
@@ -609,4 +594,26 @@ cc: General Contractor
             document.getElementById('previewLetterDocument').innerHTML = letterDocumentContent;
             
             // Switch to preview tab
-            openTab(null
+            openTab(null, 'PreviewTab');
+            
+            // Show the lien document by default
+            showPreview('lien');
+        }
+
+        function downloadAllDocuments() {
+            // First generate preview if it hasn't been generated yet
+            if (document.getElementById('previewLienDocument').innerHTML === '') {
+                generatePreview();
+            }
+            
+            // Create a promise-based version of PDF generation for sequential execution
+            const downloadLien = () => {
+                return new Promise((resolve) => {
+                    // Use the existing generatePDF function for the lien document
+                    generatePDF('lien');
+                    // Wait a bit for the first PDF to complete downloading
+                    setTimeout(resolve, 1500);
+                });
+            };
+            
+            // Execute the
