@@ -487,6 +487,57 @@
                     doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
                     doc.save(filename);
                 });
+            }
+        }
+    </script>
+</body>
+</html>('div');
+                    tempDiv.innerHTML = pageContents[pageIndex];
+                    tempDiv.style.width = '215.9mm'; // Letter width
+                    tempDiv.style.padding = '15mm';
+                    tempDiv.style.fontFamily = 'Times New Roman';
+                    tempDiv.style.fontSize = '12pt';
+                    tempDiv.style.lineHeight = '1.5';
+                    tempDiv.style.whiteSpace = 'pre-wrap';
+                    tempDiv.style.backgroundColor = 'white';
+                    document.body.appendChild(tempDiv);
+                    
+                    html2canvas(tempDiv, {
+                        scale: 3, // Increased from 2 to 3 for better text quality
+                        backgroundColor: 'white',
+                        logging: false
+                    }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                        const imgWidth = 190; // Slightly narrower than page for margins
+                        const imgHeight = canvas.height * imgWidth / canvas.width;
+                        
+                        if (pageIndex > 0) {
+                            doc.addPage();
+                        }
+                        
+                        doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                        document.body.removeChild(tempDiv);
+                        
+                        pageIndex++;
+                        processNextPage();
+                    });
+                }
+                
+                processNextPage();
+            } else {
+                // For single page letter document
+                html2canvas(previewElement, {
+                    scale: 3, // Increased from 2 to 3 for better text quality
+                    backgroundColor: 'white',
+                    logging: false
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    const imgWidth = 190;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    
+                    doc.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                    doc.save(filename);
+                });
             } {
                 document.getElementById('previewLienDocument').style.display = 'block';
                 document.getElementById('previewLienBtn').classList.add('active');
