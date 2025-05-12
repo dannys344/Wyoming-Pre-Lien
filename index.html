@@ -69,7 +69,7 @@
         }
         .preview-document {
             font-family: 'Times New Roman', Times, serif;
-            font-size: 12pt;
+            font-size: 16pt; /* Increased from 12pt to 16pt (2 sizes larger) */
             line-height: 1.5;
             white-space: pre-wrap;
         }
@@ -478,7 +478,7 @@
             const signatureHtml = `<img src="jaysignaturenew.jpg" alt="Jay L. Singleton Signature" style="max-width: 150px; margin-bottom: 0px;"><br>Jay L. Singleton, COO`;
 
             // Generate Notice of Right to Lien document with page breaks
-            const lienDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">NOTICE TO OWNER</div>
+            const lienDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 16pt;"><div style="text-align: center; font-weight: bold; margin-bottom: 10px;">NOTICE TO OWNER</div>
  
 The undersigned party is providing work or materials to the property described below. Failure of payment due and owing to a contractor, subcontractor or materialman for work performed or materials provided to the project located on the property can result in the filing of a lien against the property. To avoid this result, when paying for labor and materials you may ask the contractor, subcontractor, or materialman for "lien waivers" from all persons supplying materials or services. Failure to secure lien waivers may result in your paying for labor and materials twice. A form of lien waiver is attached to this notice.
  
@@ -553,7 +553,7 @@ Seal:
             const mailingAddress = mailingAddressInput || letterPropertyAddress;
 
             // Generate Notice Letter document with updated mailing address section
-            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.3; padding-top: 0;">
+            const letterDocumentContent = `<div style="white-space: pre-wrap; font-family: 'Times New Roman', Times, serif; font-size: 16pt; line-height: 1.3; padding-top: 0;">
 <div style="text-align: center; margin-top: -20px; margin-bottom: 5px;">
 <img src="Viewpoint Logo.jpg" alt="View Point Logo" style="max-width: 200px; margin-bottom: 0px;"><br>
 <span style="font-weight: bold;">View Point, Inc.</span>
@@ -656,7 +656,7 @@ cc: General Contractor
                     tempDiv.style.width = '215.9mm'; // Letter width
                     tempDiv.style.padding = '15mm';
                     tempDiv.style.fontFamily = 'Times New Roman';
-                    tempDiv.style.fontSize = '12pt';
+                    tempDiv.style.fontSize = '16pt';
                     tempDiv.style.lineHeight = '1.5';
                     tempDiv.style.whiteSpace = 'pre-wrap';
                     tempDiv.style.backgroundColor = 'white';
